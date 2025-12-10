@@ -1,0 +1,1 @@
+/usr/bin/cc  -std=c2x -g3 -Wall -Wextra -Wpedantic -Werror CMakeFiles/Pufferfish.dir/main.c.o -o Pufferfish 
