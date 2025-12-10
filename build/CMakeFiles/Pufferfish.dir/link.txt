@@ -1,1 +1,1 @@
-/usr/bin/cc  -g3 -Wall -Wextra -Wpedantic -Werror CMakeFiles/Pufferfish.dir/main.c.o CMakeFiles/Pufferfish.dir/board.c.o -o Pufferfish 
+/usr/bin/cc  -g3 -Wall -Wextra -Wpedantic -Werror -g CMakeFiles/Pufferfish.dir/main.c.o CMakeFiles/Pufferfish.dir/board.c.o -o Pufferfish 

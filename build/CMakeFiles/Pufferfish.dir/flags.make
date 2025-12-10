@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = 
 
-C_FLAGS =  -g3 -Wall -Wextra -Wpedantic -Werror -std=gnu2x
+C_FLAGS =  -g3 -Wall -Wextra -Wpedantic -Werror -g -std=gnu2x
 

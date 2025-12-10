@@ -4,7 +4,7 @@
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <stdbool.h>
-
+#include <assert.h> 
 typedef unsigned long long U64;
 
 typedef enum {
