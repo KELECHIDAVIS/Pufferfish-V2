@@ -1,36 +1,36 @@
 #include "board.h"
 
-int main()
-{
+int main(){
+    
+    puts("Starting debug"); 
     Board board;
-    initBoard(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    initBoard(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR ");
 
-    // puts("\nAll Pieces:");
-    // printBB(getAllPieces(&board));
+    puts("\nAll Pieces:");
+    printBB(getAllPieces(&board));
 
     // coming out of the initialization , the white board is set to zero 
     puts("\nWhite Pieces:");
     U64 whitePieces = getColorPieces(&board, nWhite);
-    assert ((board.pieces[nWhite] & 0x000000000000FFFF) != 0);
     printBB(whitePieces);
 
-    // puts("\nBlack Pieces:");
-    // printBB(getColorPieces(&board,nBlack));
+    puts("\nBlack Pieces:");
+    printBB(getColorPieces(&board,nBlack));
 
-    // puts("\nPawns:");
-    // printBB( getPieceTypePieces(&board, nPawn) );
+    puts("\nPawns:");
+    printBB( getPieceTypePieces(&board, nPawn) );
 
-    // puts("\nKnights:");
-    // printBB( getPieceTypePieces(&board, nKnight) );
+    puts("\nKnights:");
+    printBB( getPieceTypePieces(&board, nKnight) );
 
-    // puts("\nBishops:");
-    // printBB( getPieceTypePieces(&board, nBishop) );
-    // puts("\nRooks:");
-    // printBB( getPieceTypePieces(&board, nRook) );
-    // puts("\nQueens:");
-    // printBB( getPieceTypePieces(&board, nQueen) );
-    // puts("\nKings:");
-    // printBB( getPieceTypePieces(&board, nKing) );
+    puts("\nBishops:");
+    printBB( getPieceTypePieces(&board, nBishop) );
+    puts("\nRooks:");
+    printBB( getPieceTypePieces(&board, nRook) );
+    puts("\nQueens:");
+    printBB( getPieceTypePieces(&board, nQueen) );
+    puts("\nKings:");
+    printBB( getPieceTypePieces(&board, nKing) );
 
     return 0;
 }

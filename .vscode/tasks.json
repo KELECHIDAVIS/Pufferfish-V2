@@ -7,7 +7,7 @@
             "command": "cmake",
             "args": [
                 "--build",
-                "build-windows"
+                "build"
             ],
             "group": {
                 "kind": "build",
@@ -20,14 +20,14 @@
             "problemMatcher": "$gcc"
         },
         {
-            "label": "cmake-configure-windows",
+            "label": "cmake-configure",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "-G",
                 "MinGW Makefiles",
                 "-B",
-                "build-windows"
+                "build"
             ],
             "problemMatcher": []
         }

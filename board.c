@@ -32,7 +32,7 @@ void printBB(U64 bb)
 {
     for (int rank = 7; rank >= 0; rank--)
     {
-        printf("%d ", rank+1);
+        printf("%d| ", rank+1);
         for (int file = 0; file < 8; file++)
         {
             enumSquare square = rank * 8 + file;
@@ -48,10 +48,53 @@ void printBB(U64 bb)
         }
         printf("\n");
     }
-    printf("  a b c d e f g h \n");
+    printf("   _ _ _ _ _ _ _ _ \n");
+    printf("   a b c d e f g h \n");
+}
+// prints corresponding characters at each spot 
+void printChessBoard(Board *board ){
+    char possible[] = {'p', 'n', 'b', 'r', 'q', 'k'};
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        printf("%d| ", rank+1);
+        for (int file = 0; file < 8; file++)
+        {
+            enumSquare square = rank * 8 + file;
+            U64 bit = 1ULL << square;
+
+            if (bit & ~getAllPieces(board) ) {
+                printf(". "); 
+                continue; 
+            }
+
+            U64 isWhite= board->pieces[nWhite] & bit ; 
+
+            char c = 'x';  
+            for (int i=2; i < 8; i++){
+                if (bit & board->pieces[i]){
+                    c= possible[i] ;
+                    break; 
+                }
+            }
+            
+            assert (c != 'x' && "Each character printed should have a relevant value"); 
+            
+            // white is upper 
+            c  = isWhite ? toupper(c) : c ; 
+
+            printf("%c ", c ); 
+        }
+        printf("\n");
+    }
+    printf("   _ _ _ _ _ _ _ _ \n");
+    printf("   a b c d e f g h \n");
 }
 void initBoard(Board *board, char *fen)
 {
+    // initialize all bbs to 0 
+    for (int i = 0; i < 8; ++i){
+        board -> pieces[i] =0;
+    }
 
     // starting from the top right, if the char is a number, skip that many squares
     //  if its a /, move to next rank

@@ -30,7 +30,7 @@ typedef struct {
 } Board;
 
 typedef enum{
-    nWhite, // any white piece
+    nWhite=0, // any white piece
     nBlack, // any black piece
     nPawn,
     nKnight,
@@ -47,5 +47,6 @@ extern U64 getSpecificColorPieces(const Board* board, enumPiece color, enumPiece
 extern void initBoard(Board *board ,char* fen);
 extern void addPiece(Board *board, enumPiece color, enumPiece pieceType, enumSquare square);
 extern void printBB( U64 bb ); 
+extern void printChessBoard(Board *board); 
 
 #endif // BOARD_H
