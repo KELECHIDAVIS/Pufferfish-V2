@@ -72,7 +72,7 @@ void printChessBoard(Board *board ){
             char c = 'x';  
             for (int i=2; i < 8; i++){
                 if (bit & board->pieces[i]){
-                    c= possible[i] ;
+                    c= possible[i-2] ;
                     break; 
                 }
             }
