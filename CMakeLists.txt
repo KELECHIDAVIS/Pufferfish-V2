@@ -25,4 +25,5 @@ endif()
 add_executable(Pufferfish 
     main.c
     board.c
+    moves.c
 )
