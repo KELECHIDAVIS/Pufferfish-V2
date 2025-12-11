@@ -54,6 +54,7 @@ void printBB(U64 bb)
 // prints corresponding characters at each spot 
 void printChessBoard(Board *board ){
     char possible[] = {'p', 'n', 'b', 'r', 'q', 'k'};
+    U64 empty = ~getAllPieces(board); 
     for (int rank = 7; rank >= 0; rank--)
     {
         printf("%d| ", rank+1);
@@ -62,7 +63,7 @@ void printChessBoard(Board *board ){
             enumSquare square = rank * 8 + file;
             U64 bit = 1ULL << square;
 
-            if (bit & ~getAllPieces(board) ) {
+            if (bit &  empty) {
                 printf(". "); 
                 continue; 
             }
@@ -89,7 +90,19 @@ void printChessBoard(Board *board ){
     printf("   _ _ _ _ _ _ _ _ \n");
     printf("   a b c d e f g h \n");
 }
-void readPiecesFromFen(Board* board, char *fen ){
+void printBoardDetails(Board *board)
+{
+    puts("All Pieces"); 
+    printChessBoard(board); 
+
+    printf("White to move: %d\n" , board->whiteToMove); 
+    printf("Castling Rights: %d\n" , board->castlingRights); 
+    printf("En Passant Square: %d\n" , board->enPassantSquare); 
+    printf("Half Move Clock: %d\n" , board->halfmoveClock); 
+    printf("Full Move Counter: %d\n" , board->fullmoveNumber); 
+}
+void readPiecesFromFen(Board *board, char *fen)
+{
     // initialize all bbs to 0 
     for (int i = 0; i < 8; ++i){
         board -> pieces[i] =0;
@@ -154,7 +167,7 @@ void readPiecesFromFen(Board* board, char *fen ){
 
         fen++;
     }
-    fen++; // going onto next word 
+    fen++; // going onto next word
 }
 
 void readSideToMoveFromFen(Board* board, char* fen ) {
@@ -224,10 +237,31 @@ void readEnPassantFromFen(Board* board, char* fen ) {
 
 }
 void readHalfMoveClockFromFen(Board* board, char* fen ) {
+     char c = *fen ; 
+
+     if (!isdigit(c)){
+        puts("Error. Have to enter a digit for halfmove clock" );
+        abort();
+     }
+
+     board -> halfmoveClock = atoi(fen) ; // get the first number string
      
+     // could be a variable amount of digits 
+     while(*fen != ' '){
+        fen ++; 
+     }
+     fen ++; 
 }
 void readFullMoveClockFromFen(Board* board, char* fen ) {
-    
+    char c = *fen ; 
+
+     if (!isdigit(c)){
+        puts("Error. Have to enter a digit for fullmove number" );
+        abort();
+     }
+
+     board -> fullmoveNumber = atoi(fen) ; // get first number string  
+     // dnt increment to avoid undefined behavior
 }
 void initBoard(Board *board, char *fen)
 {
@@ -242,7 +276,7 @@ void initBoard(Board *board, char *fen)
     
     assert(fen!=NULL && "fen is empty after reading side"); 
     
-    readCastlingRightsFromFen(board, fen); 
+    readFromCastlingRights(board, fen); 
     
     assert(fen!=NULL && "fen is empty after reading castling"); 
     

@@ -1,22 +1,27 @@
 #include "board.h"
 
 int main(){
+    
+    
+    char fen1[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
+    char fen2[] = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"; 
+    char fen3[] = "4k2r/6r1/8/8/8/8/3R4/R3K3 w Qk - 0 1"; 
 
-    char fen[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; 
+     
+    Board board1;
+    initBoard(&board1, fen1 );
 
-    Board board;
-    initBoard(&board, fen );
+    Board board2;
+    initBoard(&board2, fen2 );
 
-    const char s[2] = " ";                   // Delimiter is a space
-    char *token;                             // Pointer to individual token
+    Board board3;
+    initBoard(&board3, fen3);
 
-    // Get the first token
-    token = strtok(fen, s);
-
-    // Walk through other tokens
-    while (token != NULL) {
-        printf(" %s\n", token); // Print the token
-        token = strtok(NULL, s); // Get the next token by passing NULL
-    }
+    puts("Board 1 details: "); 
+    printBoardDetails(&board1); 
+    puts("Board 2 details: "); 
+    printBoardDetails(&board2); 
+    puts("Board 3 details: "); 
+    printBoardDetails(&board2); 
     return 0;
 }
