@@ -14,6 +14,9 @@
 #define B_K_CASTLE 0b0010 
 #define B_Q_CASTLE 0b0001 
 
+//where a file/rank is filled with ones  
+#define FILE_A 0x0101010101010101ULL
+
 typedef unsigned long long U64;
 
 typedef enum {
