@@ -81,7 +81,7 @@ void printChessBoard(Board *board ){
             assert (c != 'x' && "Each character printed should have a relevant value"); 
             
             // white is upper 
-            c  = isWhite ? toupper(c) : c ; 
+            c  = isWhite!= 0 ? (char)toupper(c) : c ; 
 
             printf("%c ", c ); 
         }
@@ -249,7 +249,7 @@ char * readHalfMoveClockFromFen(Board* board, char* fen ) {
         abort();
      }
 
-     board -> halfmoveClock = atoi(fen) ; // get the first number string
+     board -> halfmoveClock = (unsigned short) atoi(fen) ; // get the first number string
      
      // could be a variable amount of digits 
      while(*fen != ' '){
@@ -267,7 +267,7 @@ void readFullMoveClockFromFen(Board* board, char* fen ) {
         abort();
      }
 
-     board -> fullmoveNumber = atoi(fen) ; // get first number string  
+     board -> fullmoveNumber =(unsigned short) atoi(fen) ; // get first number string  
      
      // dnt increment to avoid undefined behavior
 }
