@@ -4,8 +4,7 @@
 int main()
 {
    
-    precomputeKnightAttacks();
-    printKnightAttacks();
+    
     
     return 0;
 }
