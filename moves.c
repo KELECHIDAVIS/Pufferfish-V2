@@ -182,6 +182,7 @@ void precomputePawnAttacks()
         {
             U64 attacks = 0ULL;
             U64 position = 1ULL << square;
+
             if(i==nWhite){
                 // white pawns attack diagonally up
                 if((position << 7) & ~FILE_H) attacks |= (position << 7); // up-right
@@ -310,14 +311,13 @@ void getLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 
 static inline U64 getSinglePushPattern(const U64 emptySquares, const U64 pawnPosition, const enumPiece side)
 {
-    // also make sure not on last rank, promotion handled separately
     if (side == nWhite)
     {
-        return (pawnPosition << 8) & emptySquares & ~RANK_8;
+        return (pawnPosition << 8) & emptySquares ;
     }
     else
     {
-        return (pawnPosition >> 8) & emptySquares & ~RANK_1;
+        return (pawnPosition >> 8) & emptySquares ;
     }
 }
 static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singlePushPattern, const enumPiece side)
@@ -347,9 +347,10 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
         pawns = CLEARLSBIT(pawns);
         enumSquare fromSquare = __builtin_ctzll(pos);
         U64 emptySquares = ~getAllPieces(board);
+        U64 removeLastRank = side == nWhite ? ~RANK_8 : ~RANK_1; // promotions handled separately
 
         U64 singlePushPattern  = getSinglePushPattern(emptySquares, pos, side);
-        extractMovesFromBB(moveList, numMoves, singlePushPattern, fromSquare, QUIET_MOVE_FLAG);
+        extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank , fromSquare, QUIET_MOVE_FLAG);
 
         // only if single push is possible
         if(singlePushPattern){
@@ -359,8 +360,36 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
 
         // get pawn attacks 
         U64 attackPattern = getPawnAttackPattern( fromSquare, side);
-        (void)attackPattern;
         
+        // and with opponent pieces to get captures, also remove last rank for promotions
+        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
+        U64 opponentPieces = getColorPieces(board, opponentSide);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces& removeLastRank, fromSquare, CAPTURE_FLAG);
+
+        // for promotions can just get every single push or capture that lands on last rank
+        U64 promotionPushes = singlePushPattern & ~removeLastRank;
+        for (int i=KNIGHT_PROMOTION_FLAG; i<=QUEEN_PROMOTION_FLAG; i++) {
+            U64 copy = promotionPushes;
+            extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
+        }
+        
+
+        U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
+        for (int i=KNIGHT_PROMO_CAPTURE_FLAG; i<=QUEEN_PROMO_CAPTURE_FLAG; i++) {
+            U64 copy = promotionCaptures;
+            extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
+        }
+
+        // check enpassant if nonzero 
+        if (board->enPassantSquare) {
+            U64 enPassantBit = 1ULL << board->enPassantSquare;
+            // if they can get to the enpassant square by capturing it's valid
+            U64 enPassantCaptures = attackPattern & enPassantBit;
+            extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
+        }
+
+
+
     }
 
 }
