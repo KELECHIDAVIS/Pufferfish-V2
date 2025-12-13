@@ -17,15 +17,27 @@ int main()
     //     printf("Move %zu: from %u to %u with flags %u\n", i, getFrom(move), getTo(move), getFlags(move));
     // }
 
-    U64 bitTest = 0x0000000000000045ULL;
-    printBB(bitTest);
-
-    while( bitTest ){
-        U64 lsb = LSBIT(bitTest);
-        bitTest = CLEARLSBIT(bitTest);
-        printf("LSB: \n");
-        printBB(lsb);
-    }
+    // // precompute knight attacks and save to file to embed later 
+    // precomputeKnightAttacks();
+    // FILE *file = fopen("knight_attacks_lookup.txt", "w");
+    // if (file == NULL) {
+    //     perror("Failed to open file for writing");
+    //     return 1;
+    // }
     
+    // for (int i = 0; i < 64; i++) {
+    //     fprintf(file, "    0x%016llxULL", KNIGHT_ATTACK_LOOKUP[i]);
+    //     if (i < 63) {
+    //         fprintf(file, ",\n");
+    //     } 
+    // }
+    
+    // fclose(file);
+
+    for ( int i = 0 ; i < 64 ; i++){
+        printf("Knight attacks from square %d:\n", i);
+        printBB(KNIGHT_ATTACK_LOOKUP[i]);
+    }
+
     return 0;
 }
