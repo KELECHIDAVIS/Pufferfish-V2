@@ -1,5 +1,70 @@
 #include "moves.h"
-
+U64 PAWN_ATTACK_LOOKUP[2][64] = {{
+    0x0000000000000200ULL,
+    0x0000000000000500ULL,
+    0x0000000000000a00ULL,
+    0x0000000000001400ULL,
+    0x0000000000002800ULL,
+    0x0000000000005000ULL,
+    0x000000000000a000ULL,
+    0x0000000000004000ULL,
+    0x0000000000020000ULL,
+    0x0000000000050000ULL,
+    0x00000000000a0000ULL,
+    0x0000000000140000ULL,
+    0x0000000000280000ULL,
+    0x0000000000500000ULL,
+    0x0000000000a00000ULL,
+    0x0000000000400000ULL,
+    0x0000000002000000ULL,
+    0x0000000005000000ULL,
+    0x000000000a000000ULL,
+    0x0000000014000000ULL,
+    0x0000000028000000ULL,
+    0x0000000050000000ULL,
+    0x00000000a0000000ULL,
+    0x0000000040000000ULL,
+    0x0000000200000000ULL,
+    0x0000000500000000ULL,
+    0x0000000a00000000ULL,
+    0x0000001400000000ULL,
+    0x0000002800000000ULL,
+    0x0000005000000000ULL,
+    0x000000a000000000ULL,
+    0x0000004000000000ULL,
+    0x0000020000000000ULL,
+    0x0000050000000000ULL,
+    0x00000a0000000000ULL,
+    0x0000140000000000ULL,
+    0x0000280000000000ULL,
+    0x0000500000000000ULL,
+    0x0000a00000000000ULL,
+    0x0000400000000000ULL,
+    0x0002000000000000ULL,
+    0x0005000000000000ULL,
+    0x000a000000000000ULL,
+    0x0014000000000000ULL,
+    0x0028000000000000ULL,
+    0x0050000000000000ULL,
+    0x00a0000000000000ULL,
+    0x0040000000000000ULL,
+    0x0200000000000000ULL,
+    0x0500000000000000ULL,
+    0x0a00000000000000ULL,
+    0x1400000000000000ULL,
+    0x2800000000000000ULL,
+    0x5000000000000000ULL,
+    0xa000000000000000ULL,
+    0x4000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL,
+    0x0000000000000000ULL},
+    {0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000002ULL, 0x0000000000000005ULL, 0x000000000000000aULL, 0x0000000000000014ULL, 0x0000000000000028ULL, 0x0000000000000050ULL, 0x00000000000000a0ULL, 0x0000000000000040ULL, 0x0000000000000200ULL, 0x0000000000000500ULL, 0x0000000000000a00ULL, 0x0000000000001400ULL, 0x0000000000002800ULL, 0x0000000000005000ULL, 0x000000000000a000ULL, 0x0000000000004000ULL, 0x0000000000020000ULL, 0x0000000000050000ULL, 0x00000000000a0000ULL, 0x0000000000140000ULL, 0x0000000000280000ULL, 0x0000000000500000ULL, 0x0000000000a00000ULL, 0x0000000000400000ULL, 0x0000000002000000ULL, 0x0000000005000000ULL, 0x000000000a000000ULL, 0x0000000014000000ULL, 0x0000000028000000ULL, 0x0000000050000000ULL, 0x00000000a0000000ULL, 0x0000000040000000ULL, 0x0000000200000000ULL, 0x0000000500000000ULL, 0x0000000a00000000ULL, 0x0000001400000000ULL, 0x0000002800000000ULL, 0x0000005000000000ULL, 0x000000a000000000ULL, 0x0000004000000000ULL, 0x0000020000000000ULL, 0x0000050000000000ULL, 0x00000a0000000000ULL, 0x0000140000000000ULL, 0x0000280000000000ULL, 0x0000500000000000ULL, 0x0000a00000000000ULL, 0x0000400000000000ULL, 0x0002000000000000ULL, 0x0005000000000000ULL, 0x000a000000000000ULL, 0x0014000000000000ULL, 0x0028000000000000ULL, 0x0050000000000000ULL, 0x00a0000000000000ULL, 0x0040000000000000ULL}};
 U64 KNIGHT_ATTACK_LOOKUP[] = {
     0x0000000000020400ULL,
     0x0000000000050800ULL,
@@ -109,6 +174,40 @@ inline U64 getKnightAttackPattern(enumSquare square)
     return KNIGHT_ATTACK_LOOKUP[square];
 }
 
+void precomputePawnAttacks()
+{
+    for(int i=nWhite; i<=nBlack; i++) // for both colors
+    {
+        for (int square = 0; square < 64; square++)
+        {
+            U64 attacks = 0ULL;
+            U64 position = 1ULL << square;
+            if(i==nWhite){
+                // white pawns attack diagonally up
+                if((position << 7) & ~FILE_H) attacks |= (position << 7); // up-right
+                if((position << 9) & ~FILE_A) attacks |= (position << 9); // up-left
+            } else {
+                // black pawns attack diagonally down
+                if((position >> 7) & ~FILE_A) attacks |= (position >> 7); // down-left
+                if((position >> 9) & ~FILE_H) attacks |= (position >> 9); // down-right
+            }
+            PAWN_ATTACK_LOOKUP[i][square] = attacks;
+        }
+    }
+}
+
+void printPawnAttacks()
+{
+    for(int i=nWhite; i<=nBlack; i++) // for both colors
+    {
+        for (int square = 0; square < 64; square++)
+        {
+            printf("Pawn attacks for %s from square %d:\n", i==nWhite ? "White" : "Black", square);
+            printBB(PAWN_ATTACK_LOOKUP[i][square]);
+        }
+    }
+}
+
 static void extractMovesFromBB(Move* moveList, size_t *numMoves, U64 possibleMoves, const enumSquare fromSquare, const MoveFlag flag)
 {
     while (possibleMoves)
@@ -211,13 +310,14 @@ void getLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 
 static inline U64 getSinglePushPattern(const U64 emptySquares, const U64 pawnPosition, const enumPiece side)
 {
+    // also make sure not on last rank, promotion handled separately
     if (side == nWhite)
     {
-        return (pawnPosition << 8) & emptySquares;
+        return (pawnPosition << 8) & emptySquares & ~RANK_8;
     }
     else
     {
-        return (pawnPosition >> 8) & emptySquares;
+        return (pawnPosition >> 8) & emptySquares & ~RANK_1;
     }
 }
 static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singlePushPattern, const enumPiece side)
@@ -230,6 +330,11 @@ static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singleP
     else{
         return (singlePushPattern >> 8) & emptySquares & RANK_5;
     }
+}
+
+inline U64 getPawnAttackPattern( const enumSquare fromSquare, const enumPiece side)
+{
+    return PAWN_ATTACK_LOOKUP[side][fromSquare];
 }
 void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
@@ -252,6 +357,9 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
             extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
         }
 
+        // get pawn attacks 
+        U64 attackPattern = getPawnAttackPattern( fromSquare, side);
+        (void)attackPattern;
         
     }
 
