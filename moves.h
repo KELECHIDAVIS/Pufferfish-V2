@@ -2,9 +2,13 @@
 #define MOVES_H
 
 #include "board.h"
+#include <stdint.h>
+
+#define MAX_MOVES 218 // maximum number of legal moves possible in a position
+#define LSBIT(X) ((X) & (-(X)))
+#define CLEARLSBIT(X) ((X) & ((X) - 1))
 
 extern U64 KNIGHT_ATTACK_LOOKUP[64]; // precomputed knight attacks for each square
-
 extern void precomputeKnightAttacks();
 extern void printKnightAttacks();
 extern U64 getKnightAttacks (enumSquare square); // returns knight pattern from square
@@ -31,7 +35,7 @@ typedef enum
     QUEEN_PROMO_CAPTURE_FLAG = 15
 } MoveFlag;
 
-typedef unsigned int Move; // 16 bit move representation
+typedef uint16_t Move ; // 16 bit move representation
 
 static inline Move encodeMove(enumSquare from, enumSquare to, MoveFlag flag) {
     return ( (flag & 0xF) << 12 ) | ( (from & 0x3F) << 6 ) | (to & 0x3F);
@@ -43,15 +47,24 @@ static inline unsigned int getFlags(Move move) { return (move >> 12) & 0x0f; }
 
 static inline void setTo(Move *move, unsigned int to)
 {
-    *move &= ~0x3fU;
+    *move &= (Move)(~0x3fU);
     *move |= to & 0x3fU;
 }
 
 static inline void setFrom(Move *move, unsigned int from)
 {
-    *move &= ~0xFC0U;
+    *move &= (Move)(~0xFC0U);
     *move |= (from & 0x3fU) << 6;
 }
 static inline bool isCapture(Move move) { return (move & CAPTURE_FLAG) != 0; }
 
+
+//Pass in a move list array and it'll be filled with legal moves
+extern void getLegalMoves(Board *board, Move* moveList , size_t *numMoves);
+extern void getPawnMoves(Board *board, Move* moveList , size_t *numMoves);
+extern void getKnightMoves(Board *board, Move* moveList , size_t *numMoves);
+extern void getBishopMoves(Board *board, Move* moveList , size_t *numMoves);
+extern void getRookMoves(Board *board, Move* moveList , size_t *numMoves);
+extern void getQueenMoves(Board *board, Move* moveList , size_t *numMoves);
+extern void getKingMoves(Board *board, Move* moveList , size_t *numMoves);
 #endif //MOVES_H

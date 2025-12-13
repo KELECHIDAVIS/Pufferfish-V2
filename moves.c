@@ -43,3 +43,31 @@ U64 getKnightAttacks(enumSquare square)
     square++; 
     return 0ULL; 
 }
+
+void getKnightMoves(Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 knights = getSpecificColorPieces(board, side , nKnight); 
+   
+    //TODO: remove this placeholder code
+    moveList[0] = 0;
+    *numMoves = 0;
+    // TODO: remove this placeholder code
+
+
+    while( knights ){
+        //U64 pos = LSBIT(knights);
+        knights = CLEARLSBIT(knights);
+    }
+}
+void getLegalMoves(Board *board, Move *moveList, size_t *numMoves)
+{
+
+    //getPawnMoves(board, moveList, numMoves);
+    getKnightMoves(board, moveList, numMoves);
+    //getBishopMoves(board, moveList, numMoves);
+    //getRookMoves(board, moveList, numMoves);
+    //getQueenMoves(board, moveList, numMoves);
+    //getKingMoves(board, moveList, numMoves);
+
+}
