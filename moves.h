@@ -60,9 +60,9 @@ static inline void setFrom(Move *move, unsigned int from)
 static inline bool isCapture(Move move) { return (move & CAPTURE_FLAG) != 0; }
 
 // Pass in a move list array and it'll be filled with legal moves
-extern void getLegalMoves(Board *board, Move *moveList, size_t *numMoves);
-extern void getPawnMoves(Board *board, Move *moveList, size_t *numMoves);
-extern void getKnightMoves(Board *board, Move *moveList, size_t *numMoves);
+extern void getLegalMoves(const Board *board, Move *moveList, size_t *numMoves);
+extern void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves);
+extern void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves);
 extern void getBishopMoves(Board *board, Move *moveList, size_t *numMoves);
 extern void getRookMoves(Board *board, Move *moveList, size_t *numMoves);
 extern void getQueenMoves(Board *board, Move *moveList, size_t *numMoves);

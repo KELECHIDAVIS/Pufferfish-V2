@@ -104,12 +104,12 @@ void printKnightAttacks()
     }
 }
 
-U64 getKnightAttackPattern(enumSquare square)
+inline U64 getKnightAttackPattern(enumSquare square)
 {
     return KNIGHT_ATTACK_LOOKUP[square];
 }
 
-void extractMovesFromBB(Move* moveList, size_t *numMoves, U64 possibleMoves, enumSquare fromSquare, MoveFlag flag)
+static void extractMovesFromBB(Move* moveList, size_t *numMoves, U64 possibleMoves, const enumSquare fromSquare, const MoveFlag flag)
 {
     while (possibleMoves)
     {
@@ -121,7 +121,7 @@ void extractMovesFromBB(Move* moveList, size_t *numMoves, U64 possibleMoves, enu
         moveList[(*numMoves)++] = move;
     }
 }
-void getKnightMoves(Board *board, Move *moveList, size_t *numMoves)
+void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
     enumPiece side = board->whiteToMove ? nWhite : nBlack;
     U64 knights = getSpecificColorPieces(board, side, nKnight);
@@ -146,7 +146,7 @@ void getKnightMoves(Board *board, Move *moveList, size_t *numMoves)
 
     }
 }
-void translateFlagToAlgebraic(MoveFlag flag, char *buffer)
+void translateFlagToAlgebraic(const MoveFlag flag, char *buffer)
 {
     switch (flag)
     {
@@ -198,13 +198,61 @@ void translateFlagToAlgebraic(MoveFlag flag, char *buffer)
     }
     buffer[1] = '\0';
 }
-void getLegalMoves(Board *board, Move *moveList, size_t *numMoves)
+void getLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
 
-    // getPawnMoves(board, moveList, numMoves);
+    getPawnMoves(board, moveList, numMoves);
     getKnightMoves(board, moveList, numMoves);
     // getBishopMoves(board, moveList, numMoves);
     // getRookMoves(board, moveList, numMoves);
     // getQueenMoves(board, moveList, numMoves);
     // getKingMoves(board, moveList, numMoves);
+}
+
+static inline U64 getSinglePushPattern(const U64 emptySquares, const U64 pawnPosition, const enumPiece side)
+{
+    if (side == nWhite)
+    {
+        return (pawnPosition << 8) & emptySquares;
+    }
+    else
+    {
+        return (pawnPosition >> 8) & emptySquares;
+    }
+}
+static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singlePushPattern, const enumPiece side)
+{ 
+    // shift single push again to get double 
+    if (side == nWhite)
+    {
+        return (singlePushPattern << 8) & emptySquares & RANK_4;
+    }
+    else{
+        return (singlePushPattern >> 8) & emptySquares & RANK_5;
+    }
+}
+void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 pawns = getSpecificColorPieces(board, side, nPawn);
+
+    while(pawns)
+    {
+        U64 pos = LSBIT(pawns);
+        pawns = CLEARLSBIT(pawns);
+        enumSquare fromSquare = __builtin_ctzll(pos);
+        U64 emptySquares = ~getAllPieces(board);
+
+        U64 singlePushPattern  = getSinglePushPattern(emptySquares, pos, side);
+        extractMovesFromBB(moveList, numMoves, singlePushPattern, fromSquare, QUIET_MOVE_FLAG);
+
+        // only if single push is possible
+        if(singlePushPattern){
+            U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
+            extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
+        }
+
+        
+    }
+
 }
