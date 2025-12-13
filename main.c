@@ -4,7 +4,7 @@
 int main()
 {
    
-    
+    printf("Forehead Chess Engine\n");  
     
     return 0;
 }
