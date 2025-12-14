@@ -302,42 +302,75 @@ void translateFlagToAlgebraic(const MoveFlag flag, char *buffer)
     }
     buffer[1] = '\0';
 }
+// Moves Piece and updates it's bb, side bb and mailbox. If a piece was captured then update their side's bb and piece bb
 static inline void movePiece(Board *board, unsigned int from, unsigned int to)
 {
-    enumPiece side = board->whiteToMove ? nWhite : nBlack;
-    enumPiece piece; // iterate through pieces till we find a piece at that spot
+    enumPiece side = nWhite;
+    enumPiece oppSide = nBlack;
+    if (!board->whiteToMove)
+    {
+        side = nBlack;
+        oppSide = nWhite;
+    }
     U64 fromBit = 1ULL << from;
     U64 toBit = 1ULL << to;
-    for (int i = nPawn; i <= nKing; i++)
-    {
-        if ((fromBit & board->pieces[i]) != 0)
-        {
-            piece = i;
-            break;
-        }
-    }
+
+    // use mailbox to see which piece was at that spot
+    enumPiece piece = board->mailbox[from];
+    enumPiece capturedPiece = board->mailbox[to];
     // has to be valid piece
     assert(piece >= nPawn && piece <= nKing && "The piece could not be found in any bb");
-    board->pieces[piece] &= ~fromBit;
-    board->pieces[piece] |= toBit;
+    // move from piece bb
+    board->pieces[piece] ^= fromBit; // guarenteed to be set so just xor it
+    board->pieces[piece] |= toBit;   // might be set or not if it's a capture of the same pc
+
+    // move from side bb
+    board->pieces[side] ^= (fromBit | toBit); // both guarenteed to be set and unset
+    // update moving piece in mailbox
+    board->mailbox[from] = nWhite; // no piece
+    board->mailbox[to] = piece;
+
+    if (capturedPiece >= nPawn && capturedPiece <= nKing)
+    {
+        // update captured piece's sidebb , piece bb
+        board->pieces[capturedPiece] ^= toBit;
+        board->pieces[oppSide] ^= toBit;
+    }
 }
-static inline void removePiece(Board *board, unsigned int pos)
+
+// save state and move made at that board state
+static inline saveBoardState(Board *board, Move move, unsigned int to)
 {
+    assert(board->historySize >= 0 && board->historySize < MAX_SEARCH_DEPTH && "Tried to save state with invalid history stack size");
+
+    board->historyStack[board->historySize].move = move;
+    board->historyStack[board->historySize].castlingRights = board->castlingRights;
+    board->historyStack[board->historySize].enPassantSquare = board->enPassantSquare;
+    board->historyStack[board->historySize].halfmoveClock = board->halfmoveClock;
+    board->historyStack[board->historySize].fullMoveNumber = board->fullmoveNumber;
+    board->historyStack[board->historySize].capturedPiece = board->mailbox[getTo(move)];
+    board->historyStack[board->historySize].whiteToMove = board->whiteToMove; 
+    board->historySize++;
 }
 void makeMove(Board *board, Move move)
 {
-    // reset en passant square
-    board->enPassantSquare = 0; // not valid ep square
-
+    
     unsigned int from = getFrom(move);
     unsigned int to = getTo(move);
     unsigned int flags = getFlags(move);
-
+    
+    // save the state for this move
+    saveBoardState(board, move, to); 
     // if capture remove captured piece (from side bb and piece bb)
     // if en passant have to remove piece above or below destination (depend on side)
     // move source piece from fromsquare to tosquare (from side bb and piece bb )
     // if promo put promo piece at to (side bb and piece bb ) //else just put original piece at to (side bb and piece bb )
     // if castle move corrensponding rook and king (from side and piece bb's respectively)
+
+    // reset en passant square
+    board->enPassantSquare = 0; // not valid ep square
+    // update half move clock
+    // update full move counter
 
     // opponent's turn
     board->whiteToMove = !board->whiteToMove;

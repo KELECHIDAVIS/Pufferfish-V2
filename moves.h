@@ -2,7 +2,7 @@
 #define MOVES_H
 
 #include "board.h"
-#include <stdint.h>
+
 
 #define MAX_MOVES 256 // maximum number of legal moves possible in a position (max is 218 for chess)
 #define LSBIT(X) ((X) & (-(X)))
@@ -39,7 +39,8 @@ typedef enum
     QUEEN_PROMO_CAPTURE_FLAG = 15
 } MoveFlag;
 
-typedef uint16_t Move; // 16 bit move representation
+// defined in board.h 
+//typedef uint16_t Move; // 16 bit move representation
 
 static inline Move encodeMove(enumSquare from, enumSquare to, MoveFlag flag)
 {

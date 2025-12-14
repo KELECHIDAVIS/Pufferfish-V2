@@ -352,3 +352,8 @@ void initBoard(Board *board, char *fen)
 
     initMailbox(board) ; 
 }
+
+void initStandardChess(Board* board){
+    char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    initBoard(board, fen); 
+} 
