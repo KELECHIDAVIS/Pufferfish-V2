@@ -1,70 +1,69 @@
 #include "moves.h"
-U64 PAWN_ATTACK_LOOKUP[2][64] = {{
-    0x0000000000000200ULL,
-    0x0000000000000500ULL,
-    0x0000000000000a00ULL,
-    0x0000000000001400ULL,
-    0x0000000000002800ULL,
-    0x0000000000005000ULL,
-    0x000000000000a000ULL,
-    0x0000000000004000ULL,
-    0x0000000000020000ULL,
-    0x0000000000050000ULL,
-    0x00000000000a0000ULL,
-    0x0000000000140000ULL,
-    0x0000000000280000ULL,
-    0x0000000000500000ULL,
-    0x0000000000a00000ULL,
-    0x0000000000400000ULL,
-    0x0000000002000000ULL,
-    0x0000000005000000ULL,
-    0x000000000a000000ULL,
-    0x0000000014000000ULL,
-    0x0000000028000000ULL,
-    0x0000000050000000ULL,
-    0x00000000a0000000ULL,
-    0x0000000040000000ULL,
-    0x0000000200000000ULL,
-    0x0000000500000000ULL,
-    0x0000000a00000000ULL,
-    0x0000001400000000ULL,
-    0x0000002800000000ULL,
-    0x0000005000000000ULL,
-    0x000000a000000000ULL,
-    0x0000004000000000ULL,
-    0x0000020000000000ULL,
-    0x0000050000000000ULL,
-    0x00000a0000000000ULL,
-    0x0000140000000000ULL,
-    0x0000280000000000ULL,
-    0x0000500000000000ULL,
-    0x0000a00000000000ULL,
-    0x0000400000000000ULL,
-    0x0002000000000000ULL,
-    0x0005000000000000ULL,
-    0x000a000000000000ULL,
-    0x0014000000000000ULL,
-    0x0028000000000000ULL,
-    0x0050000000000000ULL,
-    0x00a0000000000000ULL,
-    0x0040000000000000ULL,
-    0x0200000000000000ULL,
-    0x0500000000000000ULL,
-    0x0a00000000000000ULL,
-    0x1400000000000000ULL,
-    0x2800000000000000ULL,
-    0x5000000000000000ULL,
-    0xa000000000000000ULL,
-    0x4000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL,
-    0x0000000000000000ULL},
-    {0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000002ULL, 0x0000000000000005ULL, 0x000000000000000aULL, 0x0000000000000014ULL, 0x0000000000000028ULL, 0x0000000000000050ULL, 0x00000000000000a0ULL, 0x0000000000000040ULL, 0x0000000000000200ULL, 0x0000000000000500ULL, 0x0000000000000a00ULL, 0x0000000000001400ULL, 0x0000000000002800ULL, 0x0000000000005000ULL, 0x000000000000a000ULL, 0x0000000000004000ULL, 0x0000000000020000ULL, 0x0000000000050000ULL, 0x00000000000a0000ULL, 0x0000000000140000ULL, 0x0000000000280000ULL, 0x0000000000500000ULL, 0x0000000000a00000ULL, 0x0000000000400000ULL, 0x0000000002000000ULL, 0x0000000005000000ULL, 0x000000000a000000ULL, 0x0000000014000000ULL, 0x0000000028000000ULL, 0x0000000050000000ULL, 0x00000000a0000000ULL, 0x0000000040000000ULL, 0x0000000200000000ULL, 0x0000000500000000ULL, 0x0000000a00000000ULL, 0x0000001400000000ULL, 0x0000002800000000ULL, 0x0000005000000000ULL, 0x000000a000000000ULL, 0x0000004000000000ULL, 0x0000020000000000ULL, 0x0000050000000000ULL, 0x00000a0000000000ULL, 0x0000140000000000ULL, 0x0000280000000000ULL, 0x0000500000000000ULL, 0x0000a00000000000ULL, 0x0000400000000000ULL, 0x0002000000000000ULL, 0x0005000000000000ULL, 0x000a000000000000ULL, 0x0014000000000000ULL, 0x0028000000000000ULL, 0x0050000000000000ULL, 0x00a0000000000000ULL, 0x0040000000000000ULL}};
+U64 PAWN_ATTACK_LOOKUP[2][64] = {{0x0000000000000200ULL,
+                                  0x0000000000000500ULL,
+                                  0x0000000000000a00ULL,
+                                  0x0000000000001400ULL,
+                                  0x0000000000002800ULL,
+                                  0x0000000000005000ULL,
+                                  0x000000000000a000ULL,
+                                  0x0000000000004000ULL,
+                                  0x0000000000020000ULL,
+                                  0x0000000000050000ULL,
+                                  0x00000000000a0000ULL,
+                                  0x0000000000140000ULL,
+                                  0x0000000000280000ULL,
+                                  0x0000000000500000ULL,
+                                  0x0000000000a00000ULL,
+                                  0x0000000000400000ULL,
+                                  0x0000000002000000ULL,
+                                  0x0000000005000000ULL,
+                                  0x000000000a000000ULL,
+                                  0x0000000014000000ULL,
+                                  0x0000000028000000ULL,
+                                  0x0000000050000000ULL,
+                                  0x00000000a0000000ULL,
+                                  0x0000000040000000ULL,
+                                  0x0000000200000000ULL,
+                                  0x0000000500000000ULL,
+                                  0x0000000a00000000ULL,
+                                  0x0000001400000000ULL,
+                                  0x0000002800000000ULL,
+                                  0x0000005000000000ULL,
+                                  0x000000a000000000ULL,
+                                  0x0000004000000000ULL,
+                                  0x0000020000000000ULL,
+                                  0x0000050000000000ULL,
+                                  0x00000a0000000000ULL,
+                                  0x0000140000000000ULL,
+                                  0x0000280000000000ULL,
+                                  0x0000500000000000ULL,
+                                  0x0000a00000000000ULL,
+                                  0x0000400000000000ULL,
+                                  0x0002000000000000ULL,
+                                  0x0005000000000000ULL,
+                                  0x000a000000000000ULL,
+                                  0x0014000000000000ULL,
+                                  0x0028000000000000ULL,
+                                  0x0050000000000000ULL,
+                                  0x00a0000000000000ULL,
+                                  0x0040000000000000ULL,
+                                  0x0200000000000000ULL,
+                                  0x0500000000000000ULL,
+                                  0x0a00000000000000ULL,
+                                  0x1400000000000000ULL,
+                                  0x2800000000000000ULL,
+                                  0x5000000000000000ULL,
+                                  0xa000000000000000ULL,
+                                  0x4000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL,
+                                  0x0000000000000000ULL},
+                                 {0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000000ULL, 0x0000000000000002ULL, 0x0000000000000005ULL, 0x000000000000000aULL, 0x0000000000000014ULL, 0x0000000000000028ULL, 0x0000000000000050ULL, 0x00000000000000a0ULL, 0x0000000000000040ULL, 0x0000000000000200ULL, 0x0000000000000500ULL, 0x0000000000000a00ULL, 0x0000000000001400ULL, 0x0000000000002800ULL, 0x0000000000005000ULL, 0x000000000000a000ULL, 0x0000000000004000ULL, 0x0000000000020000ULL, 0x0000000000050000ULL, 0x00000000000a0000ULL, 0x0000000000140000ULL, 0x0000000000280000ULL, 0x0000000000500000ULL, 0x0000000000a00000ULL, 0x0000000000400000ULL, 0x0000000002000000ULL, 0x0000000005000000ULL, 0x000000000a000000ULL, 0x0000000014000000ULL, 0x0000000028000000ULL, 0x0000000050000000ULL, 0x00000000a0000000ULL, 0x0000000040000000ULL, 0x0000000200000000ULL, 0x0000000500000000ULL, 0x0000000a00000000ULL, 0x0000001400000000ULL, 0x0000002800000000ULL, 0x0000005000000000ULL, 0x000000a000000000ULL, 0x0000004000000000ULL, 0x0000020000000000ULL, 0x0000050000000000ULL, 0x00000a0000000000ULL, 0x0000140000000000ULL, 0x0000280000000000ULL, 0x0000500000000000ULL, 0x0000a00000000000ULL, 0x0000400000000000ULL, 0x0002000000000000ULL, 0x0005000000000000ULL, 0x000a000000000000ULL, 0x0014000000000000ULL, 0x0028000000000000ULL, 0x0050000000000000ULL, 0x00a0000000000000ULL, 0x0040000000000000ULL}};
 U64 KNIGHT_ATTACK_LOOKUP[] = {
     0x0000000000020400ULL,
     0x0000000000050800ULL,
@@ -176,21 +175,28 @@ inline U64 getKnightAttackPattern(enumSquare square)
 
 void precomputePawnAttacks()
 {
-    for(int i=nWhite; i<=nBlack; i++) // for both colors
+    for (int i = nWhite; i <= nBlack; i++) // for both colors
     {
         for (int square = 0; square < 64; square++)
         {
             U64 attacks = 0ULL;
             U64 position = 1ULL << square;
 
-            if(i==nWhite){
+            if (i == nWhite)
+            {
                 // white pawns attack diagonally up
-                if((position << 7) & ~FILE_H) attacks |= (position << 7); // up-right
-                if((position << 9) & ~FILE_A) attacks |= (position << 9); // up-left
-            } else {
+                if ((position << 7) & ~FILE_H)
+                    attacks |= (position << 7); // up-right
+                if ((position << 9) & ~FILE_A)
+                    attacks |= (position << 9); // up-left
+            }
+            else
+            {
                 // black pawns attack diagonally down
-                if((position >> 7) & ~FILE_A) attacks |= (position >> 7); // down-left
-                if((position >> 9) & ~FILE_H) attacks |= (position >> 9); // down-right
+                if ((position >> 7) & ~FILE_A)
+                    attacks |= (position >> 7); // down-left
+                if ((position >> 9) & ~FILE_H)
+                    attacks |= (position >> 9); // down-right
             }
             PAWN_ATTACK_LOOKUP[i][square] = attacks;
         }
@@ -199,17 +205,17 @@ void precomputePawnAttacks()
 
 void printPawnAttacks()
 {
-    for(int i=nWhite; i<=nBlack; i++) // for both colors
+    for (int i = nWhite; i <= nBlack; i++) // for both colors
     {
         for (int square = 0; square < 64; square++)
         {
-            printf("Pawn attacks for %s from square %d:\n", i==nWhite ? "White" : "Black", square);
+            printf("Pawn attacks for %s from square %d:\n", i == nWhite ? "White" : "Black", square);
             printBB(PAWN_ATTACK_LOOKUP[i][square]);
         }
     }
 }
 
-static void extractMovesFromBB(Move* moveList, size_t *numMoves, U64 possibleMoves, const enumSquare fromSquare, const MoveFlag flag)
+static void extractMovesFromBB(Move *moveList, size_t *numMoves, U64 possibleMoves, const enumSquare fromSquare, const MoveFlag flag)
 {
     while (possibleMoves)
     {
@@ -234,16 +240,14 @@ void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
 
         U64 attackPattern = getKnightAttackPattern(fromSquare);
 
-        // and with empty to get quiet moves 
+        // and with empty to get quiet moves
         U64 empty = ~getAllPieces(board);
         extractMovesFromBB(moveList, numMoves, attackPattern & empty, fromSquare, QUIET_MOVE_FLAG);
-
 
         // and with opponent pieces to get captures
         enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
         U64 opponentPieces = getColorPieces(board, opponentSide);
         extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
-
     }
 }
 void translateFlagToAlgebraic(const MoveFlag flag, char *buffer)
@@ -298,7 +302,57 @@ void translateFlagToAlgebraic(const MoveFlag flag, char *buffer)
     }
     buffer[1] = '\0';
 }
-void getLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
+static inline void movePiece(Board *board, unsigned int from , unsigned int to ) {
+    enumPiece side = board->whiteToMove ? nWhite: nBlack; 
+    enumPiece piece; // iterate through pieces till we find a piece at that spot 
+    U64 fromBit = 1ULL << from; 
+    U64 toBit = 1ULL << to; 
+    for (int i =nPawn ; i<=nKing; i++){
+        if ((fromBit & board->pieces[i]) != 0){
+            piece = i ; 
+            break; 
+        }
+    }
+    // has to be valid piece 
+    assert(piece>=nPawn && piece<=nKing && "The piece could not be found in any bb"); 
+    board->pieces[piece] &= ~fromBit;
+    board->pieces[piece] |= toBit;
+}
+static inline void removePiece(Board* board, unsigned int pos){
+
+}
+void makeMove(Board *board, Move move)
+{
+    // reset en passant square 
+    board->enPassantSquare = 0; // not valid ep square 
+
+    unsigned int from = getFrom(move); 
+    unsigned int to = getTo ( move); 
+    unsigned int flags = getFlags(move); 
+
+    // if capture remove captured piece (from side bb and piece bb) 
+        // if en passant have to remove piece above or below destination (depend on side)
+    // move source piece from fromsquare to tosquare (from side bb and piece bb )
+        // if promo put promo piece at to (side bb and piece bb ) //else just put original piece at to (side bb and piece bb )
+    // if castle move corrensponding rook and king (from side and piece bb's respectively)
+
+    // opponent's turn
+    board->whiteToMove = !board->whiteToMove; 
+}
+void unmakeMove(Board *board, Move move)
+{
+}
+void printMove(Move move)
+{
+    char fromAlgebraic[3];
+    char toAlgebraic[3];
+    char flagAlgebraic[3];
+    translateSquareToAlgebraic(getFrom(move), fromAlgebraic);
+    translateSquareToAlgebraic(getTo(move), toAlgebraic);
+    translateFlagToAlgebraic((MoveFlag)getFlags(move), flagAlgebraic);
+    printf("%s to %s, Flag: %s", fromAlgebraic, toAlgebraic, flagAlgebraic);
+}
+void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
 
     getPawnMoves(board, moveList, numMoves);
@@ -313,26 +367,27 @@ static inline U64 getSinglePushPattern(const U64 emptySquares, const U64 pawnPos
 {
     if (side == nWhite)
     {
-        return (pawnPosition << 8) & emptySquares ;
+        return (pawnPosition << 8) & emptySquares;
     }
     else
     {
-        return (pawnPosition >> 8) & emptySquares ;
+        return (pawnPosition >> 8) & emptySquares;
     }
 }
 static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singlePushPattern, const enumPiece side)
-{ 
-    // shift single push again to get double 
+{
+    // shift single push again to get double
     if (side == nWhite)
     {
         return (singlePushPattern << 8) & emptySquares & RANK_4;
     }
-    else{
+    else
+    {
         return (singlePushPattern >> 8) & emptySquares & RANK_5;
     }
 }
 
-inline U64 getPawnAttackPattern( const enumSquare fromSquare, const enumPiece side)
+inline U64 getPawnAttackPattern(const enumSquare fromSquare, const enumPiece side)
 {
     return PAWN_ATTACK_LOOKUP[side][fromSquare];
 }
@@ -341,7 +396,7 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
     enumPiece side = board->whiteToMove ? nWhite : nBlack;
     U64 pawns = getSpecificColorPieces(board, side, nPawn);
 
-    while(pawns)
+    while (pawns)
     {
         U64 pos = LSBIT(pawns);
         pawns = CLEARLSBIT(pawns);
@@ -349,47 +404,46 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
         U64 emptySquares = ~getAllPieces(board);
         U64 removeLastRank = side == nWhite ? ~RANK_8 : ~RANK_1; // promotions handled separately
 
-        U64 singlePushPattern  = getSinglePushPattern(emptySquares, pos, side);
-        extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank , fromSquare, QUIET_MOVE_FLAG);
+        U64 singlePushPattern = getSinglePushPattern(emptySquares, pos, side);
+        extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank, fromSquare, QUIET_MOVE_FLAG);
 
         // only if single push is possible
-        if(singlePushPattern){
+        if (singlePushPattern)
+        {
             U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
             extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
         }
 
-        // get pawn attacks 
-        U64 attackPattern = getPawnAttackPattern( fromSquare, side);
-        
+        // get pawn attacks
+        U64 attackPattern = getPawnAttackPattern(fromSquare, side);
+
         // and with opponent pieces to get captures, also remove last rank for promotions
         enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
         U64 opponentPieces = getColorPieces(board, opponentSide);
-        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces& removeLastRank, fromSquare, CAPTURE_FLAG);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces & removeLastRank, fromSquare, CAPTURE_FLAG);
 
         // for promotions can just get every single push or capture that lands on last rank
         U64 promotionPushes = singlePushPattern & ~removeLastRank;
-        for (int i=KNIGHT_PROMOTION_FLAG; i<=QUEEN_PROMOTION_FLAG; i++) {
+        for (int i = KNIGHT_PROMOTION_FLAG; i <= QUEEN_PROMOTION_FLAG; i++)
+        {
             U64 copy = promotionPushes;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
         }
-        
 
         U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
-        for (int i=KNIGHT_PROMO_CAPTURE_FLAG; i<=QUEEN_PROMO_CAPTURE_FLAG; i++) {
+        for (int i = KNIGHT_PROMO_CAPTURE_FLAG; i <= QUEEN_PROMO_CAPTURE_FLAG; i++)
+        {
             U64 copy = promotionCaptures;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
         }
 
-        // check enpassant if nonzero 
-        if (board->enPassantSquare) {
+        // check enpassant if nonzero
+        if (board->enPassantSquare)
+        {
             U64 enPassantBit = 1ULL << board->enPassantSquare;
             // if they can get to the enpassant square by capturing it's valid
             U64 enPassantCaptures = attackPattern & enPassantBit;
             extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
         }
-
-
-
     }
-
 }

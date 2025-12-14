@@ -305,6 +305,22 @@ void readFullMoveClockFromFen(Board *board, char *fen)
 
     // dnt increment to avoid undefined behavior
 }
+static void initMailbox ( Board * board){
+    for (int sq = 0; sq < 64; sq++)
+    {
+        board->mailbox[sq] = nWhite; // if it doesn't hold a valid piece type it's empty
+    }
+    for (enumPiece piece = nPawn; piece <= nKing; piece++)
+    {
+        U64 bb = board->pieces[piece];
+        while (bb)
+        {
+            int sq = __builtin_ctzll(bb);
+            board->mailbox[sq] = piece;
+            bb &= bb - 1;
+        }
+    }
+}
 void initBoard(Board *board, char *fen)
 {
 
@@ -333,4 +349,6 @@ void initBoard(Board *board, char *fen)
     assert(curr != NULL && "fen is empty after reading half move clock");
 
     readFullMoveClockFromFen(board, curr);
+
+    initMailbox(board) ; 
 }

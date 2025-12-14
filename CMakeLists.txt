@@ -22,6 +22,7 @@ add_executable(pufferfish
     main.c
     board.c
     moves.c
+    perft.c
 )
 
 # If you have header files, you can specify include directories

@@ -11,7 +11,7 @@ int main()
     initBoard(&board, fen);
     printChessBoard(&board);
 
-    getLegalMoves(&board, moveList, &numMoves);
+    getPseudoLegalMoves(&board, moveList, &numMoves);
 
     printf("Number of legal moves: %zu\n", numMoves);
     for (size_t i = 0; i < numMoves; i++)

@@ -42,6 +42,7 @@ typedef enum {
 typedef struct {
     // going w a dense representation the holds colors in first 2 then piece types in the following 6 
     U64 pieces[8]; // nWhite, nBlack, nPawn, nKnight, nBishop, nRook, nQueen, nKing
+    enumPiece mailbox[64]; // holds the piecetype at each square for quicker lookup 
     bool whiteToMove;
     unsigned char castlingRights; // 4 bits KQkq
     enumSquare enPassantSquare; // square that can be captured via en passant
@@ -59,7 +60,7 @@ typedef enum{
     nRook,
     nQueen,
     nKing,
-    nSize // amount of enums 
+    nSize, // amount of enums 
 } enumPiece;
 
 extern U64 getAllPieces(const Board* board);
@@ -72,5 +73,6 @@ extern void printBB( U64 bb );
 extern void printChessBoard(Board *board); 
 extern void printBoardDetails(Board * board); 
 extern void translateSquareToAlgebraic(enumSquare square, char* buffer);
-
+static inline bool isOppInCheck(const Board* board); 
+static bool isSideToMoveInCheck(const Board* board); 
 #endif // BOARD_H
