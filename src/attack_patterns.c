@@ -793,3 +793,68 @@ void precomputeSlidingPieceLookupTablesAndSaveToFile()
 
     printf("\nAll lookup tables generated successfully!\n");
 }
+
+void precomputeSlidingPieceLookupTables()
+{
+    printf("Initializing magic bitboard lookup tables...\n");
+
+    // For both bishops and rooks
+    for (int isBishop = 0; isBishop <= 1; isBishop++)
+    {
+        for (int square = 0; square < 64; square++)
+        {
+            SMagic entry = isBishop ? BishopMagicTable[square] : RookMagicTable[square];
+            U64 mask = entry.mask;
+
+            int numBitsInMask = __builtin_popcountll(mask);
+            int numConfigs = 1 << numBitsInMask;
+
+            // Get pointer to lookup table for this square
+            U64 *lookupTable = isBishop ? BISHOP_ATTACK_LOOKUP[square] : ROOK_ATTACK_LOOKUP[square];
+
+            // Populate ALL possible blocker configurations
+            for (int i = 0; i < numConfigs; i++)
+            {
+                U64 blockers = createBlockerConfig(i, numBitsInMask, mask);
+                U64 attackPattern = isBishop ? iterative_getBishopAttackPattern(blockers, square) : iterative_getRookAttackPattern(blockers, square);
+
+                int hashIndex = magicIndex(&entry, blockers);
+                lookupTable[hashIndex] = attackPattern;
+            }
+        }
+    }
+
+    printf("Magic bitboard initialization complete!\n");
+}
+
+//test lookup generation 
+void testLookupGeneration(){
+    precomputeSlidingPieceLookupTables();
+
+    // test out 50 random attack patterns and see if they give the correct response
+    puts("Starting random lookup tests");
+    for (int i = 0; i < 50; i++)
+    {
+        U64 randOccupancy = randU64();
+        int randSquare = rand() % 64;
+        int isBishop = rand() % 2;
+        printf("%s on square %d\n",
+               isBishop ? "Bishop" : "Rook",
+               randSquare);
+        puts("Random Occupancy: ");
+        printBB(randOccupancy);
+
+        SMagic entry = isBishop ? BishopMagicTable[randSquare] : RookMagicTable[randSquare];
+        U64 blockers = entry.mask & randOccupancy;
+
+        printf("Relevant Blockers:\n");
+        printBB(blockers);
+
+        int hashIndex = magicIndex(&entry, blockers);
+        printf("Hash Index %d: \n", hashIndex);
+
+        puts("Attack Pattern: ");
+        U64 attackPattern = isBishop ? BISHOP_ATTACK_LOOKUP[randSquare][hashIndex] : ROOK_ATTACK_LOOKUP[randSquare][hashIndex];
+        printBB(attackPattern);
+    }
+}

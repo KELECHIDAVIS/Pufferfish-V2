@@ -3,6 +3,6 @@
 
 int main()
 {
-    precomputeSlidingPieceLookupTablesAndSaveToFile();  
+    
     return 0;
 }

@@ -102,6 +102,7 @@ static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
 // Debug/utility functions
 extern void printKnightAttacks(void);
 extern void printPawnAttacks(void);
-extern void precomputeMagicNumbersAndSaveToFile(void);
-extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void); 
+extern void precomputeMagicNumbersAndSaveToFile(void); // for Smagic tables  
+extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void);// save all possible attack patterns to files  
+extern void precomputeSlidingPieceLookupTables(void);  // just compute attack patterns on startup so we don't have to copy and paste file text (way too big )
 #endif // ATTACKS_H
