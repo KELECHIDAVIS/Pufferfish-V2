@@ -130,15 +130,15 @@ U64 KNIGHT_ATTACK_LOOKUP[64] = {
     0x0010a00000000000ULL,
     0x0020400000000000ULL};
 
-U64 KING_ATTACK_LOOKUP[64] ={
+U64 KING_ATTACK_LOOKUP[64] = {
 
-}; 
+};
 
-U64 ROOK_ATTACK_LOOKUP[64] [4096] ={0ULL}; 
-U64 BISHOP_ATTACK_LOOKUP[64][512] ={0ULL}; 
+U64 ROOK_ATTACK_LOOKUP[64][4096] = {0ULL};
+U64 BISHOP_ATTACK_LOOKUP[64][512] = {0ULL};
 
-SMagic BishopMagicTable [64] = {}; 
-SMagic RookMagicTable [64] ={}; 
+SMagic BishopMagicTable[64] = {};
+SMagic RookMagicTable[64] = {};
 
 U64 noNoEa(U64 b) { return (b << 17) & ~FILE_A; }
 U64 noEaEa(U64 b) { return (b << 10) & ~(FILE_A | FILE_B); }
@@ -153,11 +153,11 @@ U64 south(U64 b) { return (b >> 8) & ~RANK_8; }
 U64 east(U64 b) { return (b << 1) & ~FILE_A; }
 U64 west(U64 b) { return (b >> 1) & ~FILE_H; }
 U64 northEast(U64 b) { return (b << 9) & ~RANK_1 & ~FILE_A; }
-U64 southEast(U64 b) { return (b >> 7) & ~RANK_8 &~FILE_A; }
-U64 northWest(U64 b) { return (b << 7) & ~FILE_H &~RANK_1; }
-U64 southWest(U64 b) { return (b >> 9) & ~FILE_H&~RANK_8; }
+U64 southEast(U64 b) { return (b >> 7) & ~RANK_8 & ~FILE_A; }
+U64 northWest(U64 b) { return (b << 7) & ~FILE_H & ~RANK_1; }
+U64 southWest(U64 b) { return (b >> 9) & ~FILE_H & ~RANK_8; }
 
-// precompute all attacks and save them to a file 
+// precompute all attacks and save them to a file
 void precomputeAllAttacks(void)
 {
 }
@@ -194,7 +194,8 @@ void precomputePawnAttacks()
 
 void precomputeKingAttacks(void)
 {
-    for (int square = 0; square < 64; square++){
+    for (int square = 0; square < 64; square++)
+    {
         // add all possible king  moves from this square
         U64 attacks = 0ULL;
         U64 position = 1ULL << square;
@@ -232,8 +233,10 @@ void precomputeKnightAttacks()
 }
 
 // precomputes the relevant blocking squares for each square (code from:https://www.chessprogramming.org/Looking_for_Magics )
-void precomputeRookMasks(){
-    for (int sq = 0; sq<64; sq++){
+void precomputeRookMasks()
+{
+    for (int sq = 0; sq < 64; sq++)
+    {
         U64 result = 0ULL;
         int rk = sq / 8, fl = sq % 8, r, f;
         for (r = rk + 1; r <= 6; r++)
@@ -245,10 +248,11 @@ void precomputeRookMasks(){
         for (f = fl - 1; f >= 1; f--)
             result |= (1ULL << (f + rk * 8));
 
-        RookMagicTable[sq].mask = result; 
+        RookMagicTable[sq].mask = result;
     }
 }
-void precomputeBishopMasks(){
+void precomputeBishopMasks()
+{
     for (int sq = 0; sq < 64; sq++)
     {
         U64 result = 0ULL;
@@ -265,73 +269,175 @@ void precomputeBishopMasks(){
         BishopMagicTable[sq].mask = result;
     }
 }
-inline U64 randU64(){
-    U64 u1, u2, u3, u4;
-    u1 = (U64)(random()) & 0xFFFF;
-    u2 = (U64)(random()) & 0xFFFF;
-    u3 = (U64)(random()) & 0xFFFF;
-    u4 = (U64)(random()) & 0xFFFF;
-    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
-}
-//create all possible blocking configurations from the movementMask passed in 
-void createAllBlockerBitboards(U64 movementMask, U64 *blockerBitBoards , int *numConfigs){
-    // the max amount of bits in relevant blocker mask on for rook :12 , bishop:9
-    // create list of indices of the bits that are set in the movement mask 
-    int size =0; 
-    int moveSquareIndices[12]; 
 
-    for (int i =0 ; i< 64; i++){
-        if (((movementMask >> i )& 1) ==1 ){
-            moveSquareIndices[size++] = i; // index of set bit 
-        } 
+// create all possible blocking configurations from the movementMask passed in
+void createAllBlockerBitboards(U64 movementMask, U64 *blockerBitBoards, int *numConfigs)
+{
+    // the max amount of bits in relevant blocker mask on for rook :12 , bishop:9
+    // create list of indices of the bits that are set in the movement mask
+    int size = 0;
+    int moveSquareIndices[12];
+
+    for (int i = 0; i < 64; i++)
+    {
+        if (((movementMask >> i) & 1) == 1)
+        {
+            moveSquareIndices[size++] = i; // index of set bit
+        }
     }
 
-    // total number of different configurations is 2^size 
-    *numConfigs = 1<<size;  
-    // create all bit boards 
-    for (int patternIdx = 0 ; patternIdx < *numConfigs; patternIdx++){
-        for(int bitIdx = 0 ; bitIdx < size ; bitIdx++){
-            int bit = (patternIdx >> bitIdx ) & 1; 
-            blockerBitBoards[patternIdx] |= (U64)bit << moveSquareIndices[bitIdx]; 
+    // total number of different configurations is 2^size
+    *numConfigs = 1 << size;
+    // create all bit boards
+    for (int patternIdx = 0; patternIdx < *numConfigs; patternIdx++)
+    {
+        for (int bitIdx = 0; bitIdx < size; bitIdx++)
+        {
+            int bit = (patternIdx >> bitIdx) & 1;
+            blockerBitBoards[patternIdx] |= (U64)bit << moveSquareIndices[bitIdx];
         }
     }
 }
+U64 iterative_getBishopAttackPattern(U64 block, enumSquare sq)
+{
+    U64 result = 0ULL;
+    int rk = (int)sq / 8, fl = (int)sq % 8, r, f;
+    for (r = rk + 1, f = fl + 1; r <= 7 && f <= 7; r++, f++)
+    {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8)))
+            break;
+    }
+    for (r = rk + 1, f = fl - 1; r <= 7 && f >= 0; r++, f--)
+    {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8)))
+            break;
+    }
+    for (r = rk - 1, f = fl + 1; r >= 0 && f <= 7; r--, f++)
+    {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8)))
+            break;
+    }
+    for (r = rk - 1, f = fl - 1; r >= 0 && f >= 0; r--, f--)
+    {
+        result |= (1ULL << (f + r * 8));
+        if (block & (1ULL << (f + r * 8)))
+            break;
+    }
+    return result;
+}
+U64 iterative_getRookAttackPattern(U64 block, enumSquare sq)
+{
+    U64 result = 0ULL;
+    int rk = (int)sq / 8, fl = (int)sq % 8, r, f;
+    for (r = rk + 1; r <= 7; r++)
+    {
+        result |= (1ULL << (fl + r * 8));
+        if (block & (1ULL << (fl + r * 8)))
+            break;
+    }
+    for (r = rk - 1; r >= 0; r--)
+    {
+        result |= (1ULL << (fl + r * 8));
+        if (block & (1ULL << (fl + r * 8)))
+            break;
+    }
+    for (f = fl + 1; f <= 7; f++)
+    {
+        result |= (1ULL << (f + rk * 8));
+        if (block & (1ULL << (f + rk * 8)))
+            break;
+    }
+    for (f = fl - 1; f >= 0; f--)
+    {
+        result |= (1ULL << (f + rk * 8));
+        if (block & (1ULL << (f + rk * 8)))
+            break;
+    }
+    return result;
+}
 // try to make the hash table at square passed in with the current magic number
-bool tryMakeTable(bool isBishop, enumSquare square, SMagic* entry){
-     // max amount of blocker configs : rook 4096 , bishop: 512
-     U64 blockerBitboards[4096]; 
-     int numConfigs= 0;  
-     
+bool tryMakeTable(bool isBishop, enumSquare square, SMagic *entry)
+{
+    // max amount of blocker configs : rook 4096 , bishop: 512
+    int maxAmt = isBishop ? 512 : 4096;
+    U64 blockerBitboards[maxAmt];
+    int numConfigs = 0;
+
+    U64 movementMask = isBishop ? BishopMagicTable[square].mask : RookMagicTable[square].mask;
+
+    createAllBlockerBitboards(movementMask, blockerBitboards, &numConfigs);
+
+    // current hashtable for the square; each legal move for the specific blocker config
+    U64 table[maxAmt];
+    memset(table, 0, sizeof table); // set to impossible val
+    // for each blocker config
+    for (int i = 0; i < numConfigs; i++)
+    {
+        // get legal moves for this config
+        U64 moveBB = isBishop ? iterative_getBishopAttackPattern(blockerBitboards[i], square) : iterative_getRookAttackPattern(blockerBitboards[i], square);
+
+        // now check if that hash position is an entry in it
+        int index = magicIndex(entry, blockerBitboards[i]);
+        if (table[index] == 0)
+        {
+            table[index] = moveBB; // store move
+        }
+        else if (table[index] != moveBB) 
+        { // non-constructive collision have to start over
+            return false;
+        } // else: table[index] == moveBB, constructive collision
+    }
+
+    // if made it to the end without collisions set specific lookup table
+    if (isBishop)
+    {
+        memcpy(BISHOP_ATTACK_LOOKUP[square], table, sizeof(table));
+    }
+    else
+    {
+        memcpy(ROOK_ATTACK_LOOKUP[square], table, sizeof(table));
+    }
+    return true;
 }
 
 // find magic numbers through trial and error
-void findMagicNum (bool isBishop, enumSquare square, int shiftAmt,  SMagic* entry){
-    U64 mask = isBishop ? BishopMagicTable[square].mask : RookMagicTable[square].mask ; 
+void findMagicNum(bool isBishop, enumSquare square, int shiftAmt)
+{
+    U64 mask = isBishop ? BishopMagicTable[square].mask : RookMagicTable[square].mask;
 
     bool magicFound = false;
-    for (int z = 0; z < 100000000; z++){
+    for (int z = 0; z < 100000000; z++)
+    {
         // magics require low number of bits so and three rand nums to cut down bit set
-        U64 magic  = randU64() & randU64() & randU64(); 
+        U64 magic = randU64() & randU64() & randU64();
         SMagic entry = {
             .magic = magic,
             .mask = mask,
             .shiftAmt = shiftAmt,
-        }; 
-        bool madeTable = tryMakeTable(isBishop , square , &entry ); 
-        if (madeTable){
-            if (isBishop){
-                BishopMagicTable[square] = entry;  
-            }else{
-                RookMagicTable[square] = entry; 
+        };
+        bool madeTable = tryMakeTable(isBishop, square, &entry);
+        if (madeTable)
+        {
+            if (isBishop)
+            {
+                BishopMagicTable[square] = entry;
             }
-            magicFound = true; 
-            break; 
+            else
+            {
+                RookMagicTable[square] = entry;
+            }
+            magicFound = true;
+            break;
         }
     }
 
-    if(!magicFound){
-        printf("Magic Number was not found after 100000000 iterations for square %d. Closing Program...",square ); 
-        abort(); 
+    if (!magicFound)
+    {
+        printf("Magic Number was not found after 100000000 iterations for square %d. Closing Program...", square);
+        abort();
     }
 }
 void printPawnAttacks()
