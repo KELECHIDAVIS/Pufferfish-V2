@@ -138,11 +138,19 @@ U64 noNoWe(U64 b) { return (b << 15) & ~FILE_H; }
 U64 noWeWe(U64 b) { return (b << 6) & ~(FILE_G | FILE_H); }
 U64 soWeWe(U64 b) { return (b >> 10) & ~(FILE_G | FILE_H); }
 U64 soSoWe(U64 b) { return (b >> 17) & ~FILE_H; }
+U64 north(U64 b) { return (b << 8) & ~RANK_1; }
+U64 south(U64 b) { return (b >> 8) & ~RANK_8; }
+U64 east(U64 b) { return (b << 1) & ~FILE_A; }
+U64 west(U64 b) { return (b >> 1) & ~FILE_H; }
+U64 northEast(U64 b) { return (b << 9) & ~RANK_1 & ~FILE_A; }
+U64 southEast(U64 b) { return (b >> 7) & ~RANK_8 &~FILE_A; }
+U64 northWest(U64 b) { return (b << 7) & ~FILE_H &~RANK_1; }
+U64 southWest(U64 b) { return (b >> 9) & ~FILE_H&~RANK_8; }
 
+// precompute all attacks and save them to a file 
 void precomputeAllAttacks(void)
 {
 }
-
 
 void precomputePawnAttacks()
 {
@@ -171,6 +179,25 @@ void precomputePawnAttacks()
             }
             PAWN_ATTACK_LOOKUP[i][square] = attacks;
         }
+    }
+}
+
+void precomputeKingAttacks(void)
+{
+    for (int square = 0; square < 64; square++){
+        // add all possible king  moves from this square
+        U64 attacks = 0ULL;
+        U64 position = 1ULL << square;
+        attacks |= north(position);
+        attacks |= south(position);
+        attacks |= east(position);
+        attacks |= west(position);
+        attacks |= northEast(position);
+        attacks |= southEast(position);
+        attacks |= northWest(position);
+        attacks |= southWest(position);
+
+        KING_ATTACK_LOOKUP[square] = attacks;
     }
 }
 
