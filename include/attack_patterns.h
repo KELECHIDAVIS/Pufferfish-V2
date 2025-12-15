@@ -101,7 +101,6 @@ static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
 {
     return getBishopAttackPattern(square, occupancy) | getRookAttackPattern(square, occupancy);
 }
-extern void createAllBlockerBitboards(U64 movementMask, U64 *blockerBitBoards, int *numConfigs); 
 
 // Debug/utility functions
 extern void printKnightAttacks(void);

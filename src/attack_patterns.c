@@ -290,36 +290,7 @@ void precomputeBishopMasks()
     }
 }
 
-// create all possible blocking configurations from the movementMask passed in
-void createAllBlockerBitboards(U64 movementMask, U64 *blockerBitBoards, int *numConfigs)
-{
-    // TODO: remove all debug print statements 
-    // the max amount of bits in relevant blocker mask on for rook :12 , bishop:9
-    // create list of indices of the bits that are set in the movement mask
-    int size = 0;
-    int moveSquareIndices[12];
 
-    for (int i = 0; i < 64; i++)
-    {
-        if (((movementMask >> i) & 1) == 1)
-        {
-            moveSquareIndices[size++] = i; // index of set bit
-            
-        }
-    }
-
-    // total number of different configurations is 2^size
-    *numConfigs = 1 << size;
-    // create all bit boards
-    for (int patternIdx = 0; patternIdx < *numConfigs; patternIdx++)
-    {
-        for (int bitIdx = 0; bitIdx < size; bitIdx++)
-        {
-            int bit = (patternIdx >> bitIdx) & 1;
-            blockerBitBoards[patternIdx] |= (U64)bit << moveSquareIndices[bitIdx];
-        }
-    }
-}
 U64 iterative_getBishopAttackPattern(U64 block, enumSquare sq)
 {
     U64 result = 0ULL;
@@ -380,87 +351,93 @@ U64 iterative_getRookAttackPattern(U64 block, enumSquare sq)
     }
     return result;
 }
-// try to make the hash table at square passed in with the current magic number
-bool tryMakeTable(bool isBishop, enumSquare square, SMagic *entry)
+// Extract the position of the least significant set bit and clear it from the bitboard
+int popLeastSignificantBit(U64 *bitboard)
 {
-    // max amount of blocker configs : rook 4096 , bishop: 512
-    int maxAmt = isBishop ? 512 : 4096;
-    U64 blockerBitboards[maxAmt];
-    int numConfigs = 0;
+    if (*bitboard == 0)
+        return -1; // Handle empty bitboard
 
-    U64 movementMask = isBishop ? BishopMagicTable[square].mask : RookMagicTable[square].mask;
+    // Find the index of the least significant bit using built-in function
+    int bitIndex = __builtin_ctzll(*bitboard); // Count trailing zeros
 
-    createAllBlockerBitboards(movementMask, blockerBitboards, &numConfigs);
+    // Clear that bit from the bitboard
+    *bitboard &= (*bitboard - 1);
 
-    // current hashtable for the square; each legal move for the specific blocker config
-    U64 table[maxAmt];
-    memset(table, 0, sizeof table); // set to impossible val
-    // for each blocker config
-    for (int i = 0; i < numConfigs; i++)
-    {
-        // get legal moves for this config
-        U64 moveBB = isBishop ? iterative_getBishopAttackPattern(blockerBitboards[i], square) : iterative_getRookAttackPattern(blockerBitboards[i], square);
+    return bitIndex;
+}
 
-        // now check if that hash position is an entry in it
-        int index = magicIndex(entry, blockerBitboards[i]);
-        if (table[index] == 0)
+U64 createBlockerConfig(int blockerIndex, int numBitsInMask, U64 mask){
+    U64 result =0; 
+    for(int i =0; i< numBitsInMask; i++){
+        int index = popLeastSignificantBit(&mask);
+        if (blockerIndex & (1 << i))
         {
-            table[index] = moveBB; // store move
+            result |= (1ULL << index)   ;
         }
-        else if (table[index] != moveBB) 
-        { // non-constructive collision have to start over
-            return false;
-        } // else: table[index] == moveBB, constructive collision
     }
-
-    // if made it to the end without collisions set specific lookup table
-    if (isBishop)
-    {
-        memcpy(BISHOP_ATTACK_LOOKUP[square], table, sizeof(table));
-    }
-    else
-    {
-        memcpy(ROOK_ATTACK_LOOKUP[square], table, sizeof(table));
-    }
-    return true;
+    return result; 
 }
 
 // find magic numbers through trial and error
+// based on this code: https://www.chessprogramming.org/Looking_for_Magics
 void findMagicNum(bool isBishop, enumSquare square, int shiftAmt)
 {
     U64 mask = isBishop ? BishopMagicTable[square].mask : RookMagicTable[square].mask;
+    U64 blockerConfigs[4096]; // max for rook is 4096 , bishop is 512 
+    U64 attackPatterns[4096]; // found through iteration first 
+    U64 hashTable[4096]; // store attack patterns based on magic indexing 
+    U64 magicNumber;  
+    bool fail =false  ; 
+    int numConfigs,  hashIndex , numBitsInMask;
 
-    bool magicFound = false;
-    for (int z = 0; z < 100000000; z++)
-    {
-        // magics require low number of bits so and three rand nums to cut down bit set
-        U64 magic = randU64() & randU64() & randU64();
-        SMagic entry = {
-            .magic = magic,
-            .mask = mask,
-            .shiftAmt = shiftAmt,
-        };
-        bool madeTable = tryMakeTable(isBishop, square, &entry);
-        if (madeTable)
+    numBitsInMask = __builtin_popcountll(mask); 
+    numConfigs = 1<<numBitsInMask;  // 2^numBits; 
+
+    // for each blocker config, iteratively get the attack pattern for it 
+    for(int i = 0; i< numConfigs; i++){
+        blockerConfigs[i] = createBlockerConfig(i, numBitsInMask, mask); 
+        attackPatterns[i] = isBishop? iterative_getBishopAttackPattern(blockerConfigs[i], square) : iterative_getRookAttackPattern(blockerConfigs[i], square)   ;  
+    }
+
+    // now try to generate random numbers that can perfectly hash the blocker config to a spot in the hashTable without any non-contructive collisions
+    for(int z = 0; z < 100000000; z++){
+        magicNumber = randU64() & randU64() & randU64();
+        int numSetBits = __builtin_popcountll((mask * magicNumber) & 0xFF00000000000000ULL); 
+        if(numSetBits < 6) continue; 
+
+        for (int i =0; i<4096; i++) hashTable [i] = 0ULL;
+
+        for (int i = 0, fail = false; !fail && i < numConfigs; i++)
         {
-            if (isBishop)
-            {
-                BishopMagicTable[square] = entry;
+            SMagic entry ={
+                .magic  = magicNumber,
+                .mask = mask,
+                .shiftAmt = shiftAmt,
+            }; 
+            hashIndex= magicIndex(&entry , blockerConfigs[i]);
+
+            if (hashTable[hashIndex] == 0ULL)
+                hashTable[hashIndex] = attackPatterns[i];
+            else if (hashTable[hashIndex] != attackPatterns[i])
+                fail = true;
+        }
+        if (!fail){
+            if(isBishop){
+                BishopMagicTable [square].magic = magicNumber; 
+                BishopMagicTable[square].mask = mask; 
+                BishopMagicTable[square].shiftAmt = shiftAmt; 
+            }else{
+                RookMagicTable[square].magic = magicNumber;
+                RookMagicTable[square].mask = mask;
+                RookMagicTable[square].shiftAmt = shiftAmt;
             }
-            else
-            {
-                RookMagicTable[square] = entry;
-            }
-            magicFound = true;
-            break;
         }
     }
-
-    if (!magicFound)
-    {
-        printf("Magic Number was not found after 100000000 iterations for square %d. Closing Program...", square);
-        abort();
+    if(fail){
+        printf("Magic generation for square %d failed after 100000000 attempts. Closing Program...", square)   ; 
+        abort(); 
     }
+
 }
 void printPawnAttacks()
 {
