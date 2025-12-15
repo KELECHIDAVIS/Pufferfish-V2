@@ -1,4 +1,4 @@
-#include "board.h"
+
 #include "moves.h"
 
 int main()
