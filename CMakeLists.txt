@@ -19,14 +19,17 @@ endif()
 
 # Define the executable
 add_executable(pufferfish
-    main.c
-    board.c
-    moves.c
-    perft.c
+    src/main.c
+    src/board.c
+    src/moves.c
+    src/perft.c
+    src/attack_patterns.c
 )
 
-# If you have header files, you can specify include directories
-# target_include_directories(pufferfish PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+# Tell the compiler where to find header files
+target_include_directories(pufferfish PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 # Optional: Add custom target for running the program
 add_custom_target(run

@@ -2,21 +2,13 @@
 #define MOVES_H
 
 #include "board.h"
-
+#include "attack_patterns.h"
 
 #define MAX_MOVES 256 // maximum number of legal moves possible in a position (max is 218 for chess)
 #define LSBIT(X) ((X) & (-(X)))
 #define CLEARLSBIT(X) ((X) & ((X) - 1))
 
-extern U64 KNIGHT_ATTACK_LOOKUP[64];  // precomputed knight attacks for each square
-extern U64 PAWN_ATTACK_LOOKUP[2][64]; // precomputed pawn attacks for each color and square
-extern void precomputeKnightAttacks();
-extern void printKnightAttacks();
-extern U64 getKnightAttackPattern(enumSquare square); // returns knight pattern from square
 
-extern void precomputePawnAttacks();
-extern void printPawnAttacks();
-extern U64 getPawnAttackPattern(const enumSquare fromSquare, const enumPiece side); // returns pawn attack pattern from square and side
 // Moves are encoded into 16 bit integers as follows:
 // bits 0-5: destination square (0-63)
 // bits 6-11: source square (0-63)
@@ -70,10 +62,10 @@ extern void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numM
 
 extern void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves);
 extern void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves);
-extern void getBishopMoves(Board *board, Move *moveList, size_t *numMoves);
-extern void getRookMoves(Board *board, Move *moveList, size_t *numMoves);
-extern void getQueenMoves(Board *board, Move *moveList, size_t *numMoves);
-extern void getKingMoves(Board *board, Move *moveList, size_t *numMoves);
+extern void getBishopMoves(const Board *board, Move *moveList, size_t *numMoves);
+extern void getRookMoves(const Board *board, Move *moveList, size_t *numMoves);
+extern void getQueenMoves(const Board *board, Move *moveList, size_t *numMoves);
+extern void getKingMoves(const Board *board, Move *moveList, size_t *numMoves);
 extern void translateFlagToAlgebraic(MoveFlag flag, char *buffer);
 
 extern void makeMove(Board *board, Move move);
