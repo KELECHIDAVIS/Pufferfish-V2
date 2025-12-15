@@ -86,10 +86,22 @@ static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singleP
     }
 }
 
-// Future sliding piece attacks
-// extern U64 getRookAttacks(enumSquare square, U64 occupancy);
-// extern U64 getBishopAttacks(enumSquare square, U64 occupancy);
-// extern U64 getQueenAttacks(enumSquare square, U64 occupancy);
+// Magic bb lookup tables
+static inline U64 getRookAttackPattern(enumSquare square, U64 occupancy){
+    int index = magicIndex(&RookMagicTable[square], occupancy);
+
+    return ROOK_ATTACK_LOOKUP[square][index];
+}
+static inline U64 getBishopAttackPattern(enumSquare square, U64 occupancy){
+    int index = magicIndex(&BishopMagicTable[square], occupancy);
+
+    return BISHOP_ATTACK_LOOKUP[square][index];
+}
+static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
+{
+    return getBishopAttackPattern(square, occupancy) | getRookAttackPattern(square, occupancy);
+}
+extern void createAllBlockerBitboards(U64 movementMask, U64 *blockerBitBoards, int *numConfigs); 
 
 // Debug/utility functions
 extern void printKnightAttacks(void);

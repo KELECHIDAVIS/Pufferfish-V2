@@ -451,6 +451,10 @@ void printPawnAttacks()
         }
     }
 }
+
+
+
+
 void printKnightAttacks()
 {
     for (int square = 0; square < 64; square++)

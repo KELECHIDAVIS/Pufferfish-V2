@@ -1,33 +1,33 @@
 
 #include "moves.h"
-
+#include "attack_patterns.h"
 int main()
 {
-
-    // Move moveList[MAX_MOVES];
-    // size_t numMoves = 0;
-    // Board board;
-    // char *fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    // initBoard(&board, fen);
-    // printChessBoard(&board);
-
-    // getPseudoLegalMoves(&board, moveList, &numMoves);
-
-    // printf("Number of legal moves: %zu\n", numMoves);
-    // for (size_t i = 0; i < numMoves; i++)
-    // {
-    //     Move move = moveList[i];
-    //     char fromAlgebraic[3];
-    //     char toAlgebraic[3];
-    //     char flagAlgebraic[3];
-    //     translateSquareToAlgebraic(getFrom(move), fromAlgebraic);
-    //     translateSquareToAlgebraic(getTo(move), toAlgebraic);
-    //     translateFlagToAlgebraic((MoveFlag)getFlags(move), flagAlgebraic);
-    //     printf("Move %zu: %s to %s, Flag: %s\n", i + 1, fromAlgebraic, toAlgebraic, flagAlgebraic);
-    // }
+    // for each square, generate the magic number 
     precomputeBishopMasks(); 
-    for (int i=0 ; i< 64 ; i++){
-        printBB(BishopMagicTable[i].mask); 
+    for (int square = 0; square< 64 ; square++){ // Bishops
+        // shift amt is determined by the number of bits the relevant blocker has at this square then subtract that from 64
+        int bitsSet = __builtin_popcountll(BishopMagicTable[square].mask); 
+        int shiftAmt = 64 - bitsSet; 
+        findMagicNum(false, square, shiftAmt );
+
+        // now test all possible configurations for 
+        U64 blockerBitboards[512]; 
+        int numConfigs = 0; 
+        createAllBlockerBitboards(BishopMagicTable[square].mask, blockerBitboards, &numConfigs); 
+        
+        // for each blocker config, print out accompanying attack pattern based on magic lookup 
+        for (int j = 0 ; j< numConfigs; j++){
+            puts("Relevant Movement Mask For Square");
+            printBB(BishopMagicTable[square].mask); 
+            puts("Blocker Config: "); 
+            printBB(blockerBitboards[j]); 
+
+            puts("Attack Pattern: "); 
+            printBB(getBishopAttackPattern(square, blockerBitboards[j])); 
+        }
+        break; // TODO: remove 
     }
+
     return 0;
 }
