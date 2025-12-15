@@ -105,5 +105,5 @@ static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
 // Debug/utility functions
 extern void printKnightAttacks(void);
 extern void printPawnAttacks(void);
-
+extern void precomputeMagicNumbersAndSaveToFile(void); 
 #endif // ATTACKS_H
