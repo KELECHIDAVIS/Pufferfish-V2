@@ -14,7 +14,8 @@ extern U64 BISHOP_ATTACK_LOOKUP[64][512]; // 256 K
 
 typedef struct {
     U64 mask; // relevant blocking squares at pos 
-    U64 magic ; 
+    U64 magic ; // num to mult by to get hash 
+    int shiftAmt; // amt to shift after multiplication (64-bitAmtAtSq)
 }SMagic;
 
 // where magic numbers and relevant masks for each square are stored 
@@ -28,7 +29,14 @@ extern void precomputePawnAttacks(void);
 extern void precomputeKingAttacks(void);
 extern void precomputeRookMasks(void);
 extern void precomputeBishopMasks(void);
-
+extern void findMagicNum(bool isBishop, enumSquare square, int shiftAmt, SMagic* entry); // continuoslly loop until we find a valid magic number  
+// get index within hashtable 
+static inline int magicIndex(SMagic* entry , U64 blockers){
+    blockers &= entry->mask; // get blockers within rays
+    U64 hash = blockers * entry->magic;  
+    int index =  (int) (hash >> entry->shiftAmt); 
+    return index; 
+}
 // Attack pattern getters (inline for performance)
 static inline U64 getKnightAttackPattern(enumSquare square)
 {

@@ -134,8 +134,8 @@ U64 KING_ATTACK_LOOKUP[64] ={
 
 }; 
 
-U64 ROOK_ATTACK_LOOKUP[64] [4096] ={}; 
-U64 BISHOP_ATTACK_LOOKUP[64][512] ={}; 
+U64 ROOK_ATTACK_LOOKUP[64] [4096] ={0ULL}; 
+U64 BISHOP_ATTACK_LOOKUP[64][512] ={0ULL}; 
 
 SMagic BishopMagicTable [64] = {}; 
 SMagic RookMagicTable [64] ={}; 
@@ -265,7 +265,75 @@ void precomputeBishopMasks(){
         BishopMagicTable[sq].mask = result;
     }
 }
+inline U64 randU64(){
+    U64 u1, u2, u3, u4;
+    u1 = (U64)(random()) & 0xFFFF;
+    u2 = (U64)(random()) & 0xFFFF;
+    u3 = (U64)(random()) & 0xFFFF;
+    u4 = (U64)(random()) & 0xFFFF;
+    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
+}
+//create all possible blocking configurations from the movementMask passed in 
+void createAllBlockerBitboards(U64 movementMask, U64 *blockerBitBoards , int *numConfigs){
+    // the max amount of bits in relevant blocker mask on for rook :12 , bishop:9
+    // create list of indices of the bits that are set in the movement mask 
+    int size =0; 
+    int moveSquareIndices[12]; 
 
+    for (int i =0 ; i< 64; i++){
+        if (((movementMask >> i )& 1) ==1 ){
+            moveSquareIndices[size++] = i; // index of set bit 
+        } 
+    }
+
+    // total number of different configurations is 2^size 
+    *numConfigs = 1<<size;  
+    // create all bit boards 
+    for (int patternIdx = 0 ; patternIdx < *numConfigs; patternIdx++){
+        for(int bitIdx = 0 ; bitIdx < size ; bitIdx++){
+            int bit = (patternIdx >> bitIdx ) & 1; 
+            blockerBitBoards[patternIdx] |= (U64)bit << moveSquareIndices[bitIdx]; 
+        }
+    }
+}
+// try to make the hash table at square passed in with the current magic number
+bool tryMakeTable(bool isBishop, enumSquare square, SMagic* entry){
+     // max amount of blocker configs : rook 4096 , bishop: 512
+     U64 blockerBitboards[4096]; 
+     int numConfigs= 0;  
+     
+}
+
+// find magic numbers through trial and error
+void findMagicNum (bool isBishop, enumSquare square, int shiftAmt,  SMagic* entry){
+    U64 mask = isBishop ? BishopMagicTable[square].mask : RookMagicTable[square].mask ; 
+
+    bool magicFound = false;
+    for (int z = 0; z < 100000000; z++){
+        // magics require low number of bits so and three rand nums to cut down bit set
+        U64 magic  = randU64() & randU64() & randU64(); 
+        SMagic entry = {
+            .magic = magic,
+            .mask = mask,
+            .shiftAmt = shiftAmt,
+        }; 
+        bool madeTable = tryMakeTable(isBishop , square , &entry ); 
+        if (madeTable){
+            if (isBishop){
+                BishopMagicTable[square] = entry;  
+            }else{
+                RookMagicTable[square] = entry; 
+            }
+            magicFound = true; 
+            break; 
+        }
+    }
+
+    if(!magicFound){
+        printf("Magic Number was not found after 100000000 iterations for square %d. Closing Program...",square ); 
+        abort(); 
+    }
+}
 void printPawnAttacks()
 {
     for (int i = nWhite; i <= nBlack; i++) // for both colors
