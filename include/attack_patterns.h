@@ -105,5 +105,7 @@ extern void printPawnAttacks(void);
 extern void precomputeRookMasks(void);
 extern void precomputeBishopMasks(void);
 extern void precomputeMagicNumbersAndSaveToFile(void); // for Smagic tables  
-extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void);// save all possible attack patterns to files  
+extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void);// save all possible attack patterns to files
+extern void fprintBB(FILE* fp , U64 bitboard); 
+extern void writeAllAttackPatternsToFile(void);   
 #endif // ATTACKS_H

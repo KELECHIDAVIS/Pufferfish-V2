@@ -562,6 +562,91 @@ void precomputeSlidingPieceLookupTablesAndSaveToFile()
     printf("\nAll lookup tables generated successfully!\n");
 }
 
+void fprintBB(FILE *fp, U64 bitboard)
+{
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        fprintf(fp, "%d| ", rank + 1);
+        for (int file = 0; file < 8; file++)
+        {
+            int square = rank * 8 + file;
+            if (bitboard & (1ULL << square))
+            {
+                fprintf(fp, "1 ");
+            }
+            else
+            {
+                fprintf(fp, ". ");
+            }
+        }
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "   _ _ _ _ _ _ _ _ \n");
+    fprintf(fp, "   a b c d e f g h\n");
+}
+
+void writeAllAttackPatternsToFile(void)
+{
+    puts("Precomputing all attack patterns...");
+    precomputeAllAttacks();
+    puts("Precomputations complete!");
+
+    FILE *fp = fopen("attack_patterns_visualization.txt", "w");
+    if (!fp)
+    {
+        fprintf(stderr, "Error: Could not open attack_patterns_visualization.txt for writing\n");
+        abort(); 
+    }
+
+    fprintf(fp, "========================================\n");
+    fprintf(fp, "ATTACK PATTERNS FOR ALL PIECES\n");
+    fprintf(fp, "========================================\n\n");
+
+    for (int square = 0; square < 64; square++)
+    {
+        fprintf(fp, "============ SQUARE %d ============\n", square);
+
+        // White Pawn Attacks
+        U64 wpawnAttacks = getPawnAttackPattern(square, nWhite);
+        fprintf(fp, "\nWhite Pawn Attacks:\n");
+        fprintBB(fp, wpawnAttacks);
+
+        // Black Pawn Attacks
+        U64 bpawnAttacks = getPawnAttackPattern(square, nBlack);
+        fprintf(fp, "\nBlack Pawn Attacks:\n");
+        fprintBB(fp, bpawnAttacks);
+
+        // Knight Attacks
+        U64 knightAttacks = getKnightAttackPattern(square);
+        fprintf(fp, "\nKnight Attacks:\n");
+        fprintBB(fp, knightAttacks);
+
+        // Bishop Attacks (no blockers)
+        U64 bishop = getBishopAttackPattern(square, 0);
+        fprintf(fp, "\nBishop Attacks (no blockers):\n");
+        fprintBB(fp, bishop);
+
+        // Rook Attacks (no blockers)
+        U64 rook = getRookAttackPattern(square, 0);
+        fprintf(fp, "\nRook Attacks (no blockers):\n");
+        fprintBB(fp, rook);
+
+        // Queen Attacks
+        fprintf(fp, "\nQueen Attacks (no blockers):\n");
+        fprintBB(fp, rook | bishop);
+
+        // King Attacks
+        U64 king = getKingAttackAttackPattern(square);
+        fprintf(fp, "\nKing Attacks:\n");
+        fprintBB(fp, king);
+
+        fprintf(fp, "\n\n");
+    }
+
+    fclose(fp);
+    printf("Attack patterns saved to attack_patterns_visualization.txt\n");
+}
+
 void precomputeSlidingPieceLookupTables()
 {
     printf("Initializing magic bitboard lookup tables...\n");
