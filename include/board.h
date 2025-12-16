@@ -163,6 +163,7 @@ static inline U64 getSpecificColorPieces(const Board *board, enumPiece color, en
   return board->pieces[color] & board->pieces[pieceType];
 }
 extern void initBoard(Board *board, char *fen);
+extern void initStandardChess(Board* board); 
 extern void addPiece(Board *board, enumPiece color, enumPiece pieceType, enumSquare square);
 extern void printBB(U64 bb);
 extern void printChessBoard(Board *board);

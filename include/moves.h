@@ -71,5 +71,5 @@ extern bool isSideInCheck(const Board* board , const enumPiece side );
 extern void makeMove(Board *board, Move move);
 extern void unmakeMove(Board *board, Move move);
 
-//extern void printMove(Move move);
+extern void printMove(Move move);
 #endif // MOVES_H

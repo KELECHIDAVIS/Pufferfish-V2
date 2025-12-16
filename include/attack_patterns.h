@@ -6,19 +6,20 @@
 // Lookup tables
 extern U64 KNIGHT_ATTACK_LOOKUP[64];
 extern U64 PAWN_ATTACK_LOOKUP[2][64];
-extern U64 KING_ATTACK_LOOKUP[64]; 
+extern U64 KING_ATTACK_LOOKUP[64];
 
-//Magic bb stuff for sliding pieces 
-extern U64 ROOK_ATTACK_LOOKUP[64][4096]; // 2048K 
+// Magic bb stuff for sliding pieces
+extern U64 ROOK_ATTACK_LOOKUP[64][4096];  // 2048K
 extern U64 BISHOP_ATTACK_LOOKUP[64][512]; // 256 K
 
-typedef struct {
-    U64 mask; // relevant blocking squares at pos 
-    U64 magic ; // num to mult by to get hash 
+typedef struct
+{
+    U64 mask;     // relevant blocking squares at pos
+    U64 magic;    // num to mult by to get hash
     int shiftAmt; // amt to shift after multiplication (64-bitAmtAtSq)
-}SMagic;
+} SMagic;
 
-// where magic numbers and relevant masks for each square are stored 
+// where magic numbers and relevant masks for each square are stored
 extern SMagic BishopMagicTable[64];
 extern SMagic RookMagicTable[64];
 
@@ -27,12 +28,13 @@ extern void precomputeAllAttacks(void); // Call this once at startup
 extern void precomputeKnightAttacks(void);
 extern void precomputePawnAttacks(void);
 extern void precomputeKingAttacks(void);
-extern void precomputeMagicNumbers(void); // call this for  
-extern void precomputeSlidingPieceLookupTables(void);  // just compute attack patterns on startup so we don't have to copy and paste file text (way too big )
-extern U64 findMagicNum(bool isBishop, enumSquare square); // continuoslly loop until we find a valid magic number  
-// get index within hashtable 
-static inline int magicIndex(SMagic* entry , U64 blockers){
-    return (int)((blockers* entry->magic) >> (entry->shiftAmt));
+extern void precomputeMagicNumbers(void);                  // call this for
+extern void precomputeSlidingPieceLookupTables(void);      // just compute attack patterns on startup so we don't have to copy and paste file text (way too big )
+extern U64 findMagicNum(bool isBishop, enumSquare square); // continuoslly loop until we find a valid magic number
+// get index within hashtable
+static inline int magicIndex(SMagic *entry, U64 blockers)
+{
+    return (int)((blockers * entry->magic) >> (entry->shiftAmt));
 }
 static inline U64 randU64()
 {
@@ -54,7 +56,7 @@ static inline U64 getPawnAttackPattern(enumSquare square, enumPiece side)
     return PAWN_ATTACK_LOOKUP[side][square];
 }
 
-static inline U64 getKingAttackAttackPattern(enumSquare square)
+static inline U64 getKingAttackPattern(enumSquare square)
 {
     return KING_ATTACK_LOOKUP[square];
 }
@@ -84,15 +86,17 @@ static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singleP
 }
 
 // Magic bb lookup tables
-// pass in the relevant occupancy of the squares 
-static inline U64 getRookAttackPattern(enumSquare square, U64 occupancy){
+// pass in the relevant occupancy of the squares
+static inline U64 getRookAttackPattern(enumSquare square, U64 occupancy)
+{
     int index = magicIndex(&RookMagicTable[square], occupancy);
-    
+
     return ROOK_ATTACK_LOOKUP[square][index];
 }
-static inline U64 getBishopAttackPattern(enumSquare square, U64 occupancy){
+static inline U64 getBishopAttackPattern(enumSquare square, U64 occupancy)
+{
     int index = magicIndex(&BishopMagicTable[square], occupancy);
-    
+
     return BISHOP_ATTACK_LOOKUP[square][index];
 }
 static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
@@ -102,14 +106,13 @@ static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
 
 extern U64 getSideAttackPattern(const Board *board, enumPiece side);
 
-
 // Debug/utility functions
 extern void printKnightAttacks(void);
 extern void printPawnAttacks(void);
 extern void precomputeRookMasks(void);
 extern void precomputeBishopMasks(void);
-extern void precomputeMagicNumbersAndSaveToFile(void); // for Smagic tables  
-extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void);// save all possible attack patterns to files
-extern void fprintBB(FILE* fp , U64 bitboard); 
-extern void writeAllAttackPatternsToFile(void);   
+extern void precomputeMagicNumbersAndSaveToFile(void);             // for Smagic tables
+extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void); // save all possible attack patterns to files
+extern void fprintBB(FILE *fp, U64 bitboard);
+extern void writeAllAttackPatternsToFile(void);
 #endif // ATTACKS_H

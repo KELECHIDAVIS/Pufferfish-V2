@@ -1,6 +1,4 @@
 todo: 
 -perft:
-	-make move
-	-if king from last side is able to be taken  after that move, that move was illegal 
-		-check if king's pos is in that attack pattern 
-	-unmake move
+	history-> ply is growing to much probably because were passing references and not resseting 
+	problem is that the ply isn't representing the actual length of the history arr. when it's it's a length of 256 the history->ply says 32759

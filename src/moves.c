@@ -1,6 +1,6 @@
- #include "moves.h"
+#include "moves.h"
 
-// extract pseudo legal moves  
+// extract pseudo legal moves
 static void extractMovesFromBB(Move *moveList, size_t *numMoves, U64 possibleMoves, const enumSquare fromSquare, const MoveFlag flag)
 {
     while (possibleMoves)
@@ -17,7 +17,7 @@ void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
     enumPiece side = board->whiteToMove ? nWhite : nBlack;
     U64 knights = getSpecificColorPieces(board, side, nKnight);
-    
+
     while (knights)
     {
         U64 pos = LSBIT(knights);
@@ -38,16 +38,88 @@ void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
 }
 void getBishopMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
-    enumPiece side = board->whiteToMove ? nWhite : nBlack; 
-    U64 bishops = getSpecificColorPieces(board, side, nBishop); 
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 bishops = getSpecificColorPieces(board, side, nBishop);
 
-    while(bishops){
+    while (bishops)
+    {
         U64 pos = LSBIT(bishops);
         bishops = CLEARLSBIT(bishops);
         enumSquare fromSquare = __builtin_ctzll(pos);
 
-        U64 blockers = getAllPieces(board) & BishopMagicTable[fromSquare].mask; 
+        U64 blockers = getAllPieces(board) & BishopMagicTable[fromSquare].mask;
         U64 attackPattern = getBishopAttackPattern(fromSquare, blockers);
+
+        // and with empty to get quiet moves
+        U64 empty = ~getAllPieces(board);
+        extractMovesFromBB(moveList, numMoves, attackPattern & empty, fromSquare, QUIET_MOVE_FLAG);
+
+        // and with opponent pieces to get captures
+        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
+        U64 opponentPieces = getColorPieces(board, opponentSide);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
+    }
+}
+void getRookMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 rooks = getSpecificColorPieces(board, side, nRook);
+
+    while (rooks)
+    {
+        U64 pos = LSBIT(rooks);
+        rooks = CLEARLSBIT(rooks);
+        enumSquare fromSquare = __builtin_ctzll(pos);
+
+        U64 blockers = getAllPieces(board) & RookMagicTable[fromSquare].mask;
+        U64 attackPattern = getRookAttackPattern(fromSquare, blockers);
+
+        // and with empty to get quiet moves
+        U64 empty = ~getAllPieces(board);
+        extractMovesFromBB(moveList, numMoves, attackPattern & empty, fromSquare, QUIET_MOVE_FLAG);
+
+        // and with opponent pieces to get captures
+        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
+        U64 opponentPieces = getColorPieces(board, opponentSide);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
+    }
+}
+void getQueenMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 queen = getSpecificColorPieces(board, side, nQueen);
+
+    while (queen)
+    {
+        U64 pos = LSBIT(queen);
+        queen = CLEARLSBIT(queen);
+        enumSquare fromSquare = __builtin_ctzll(pos);
+
+        U64 blockers = getAllPieces(board) & (BishopMagicTable[fromSquare].mask | RookMagicTable[fromSquare].mask);
+        U64 attackPattern = getQueenAttackPattern(fromSquare, blockers);
+
+        // and with empty to get quiet moves
+        U64 empty = ~getAllPieces(board);
+        extractMovesFromBB(moveList, numMoves, attackPattern & empty, fromSquare, QUIET_MOVE_FLAG);
+
+        // and with opponent pieces to get captures
+        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
+        U64 opponentPieces = getColorPieces(board, opponentSide);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
+    }
+}
+void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 kings = getSpecificColorPieces(board, side, nKing);
+
+    while (kings)
+    {
+        U64 pos = LSBIT(kings);
+        kings = CLEARLSBIT(kings);
+        enumSquare fromSquare = __builtin_ctzll(pos);
+
+        U64 attackPattern = getKingAttackPattern(fromSquare);
 
         // and with empty to get quiet moves
         U64 empty = ~getAllPieces(board);
@@ -168,7 +240,6 @@ void movePiece(Board *board, unsigned int from, unsigned int to, MoveFlag flags)
     board->mailbox[from] = nWhite; // no piece
     board->mailbox[to] = piece;
 
-    
     if (capturedPiece >= nPawn && capturedPiece <= nKing)
     {
         // update captured piece's sidebb , piece bb
@@ -178,8 +249,6 @@ void movePiece(Board *board, unsigned int from, unsigned int to, MoveFlag flags)
         // if a capture was a rook have to update castling rights
         if (capturedPiece == nRook)
             updateCastlingRights(board, nRook, to); // where the rook is
-
-        
     }
 
     // SPECIAL FLAG CASES
@@ -269,23 +338,26 @@ void saveBoardState(Board *board, Move move)
     board->historyArr[board->historyPly].enPassantSquare = board->enPassantSquare;
     board->historyArr[board->historyPly].halfmoveClock = board->halfmoveClock;
     board->historyArr[board->historyPly].fullMoveNumber = board->fullmoveNumber;
-    unsigned int to= getTo(move); 
-    if (getFlags(move) == EN_PASSANT_CAPTURE_FLAG){
+    unsigned int to = getTo(move);
+    if (getFlags(move) == EN_PASSANT_CAPTURE_FLAG)
+    {
         // depending on the side, the captured pawn is above or below
         int capturedPawnPos = (int)to;
         capturedPawnPos += board->whiteToMove ? -8 : 8;
         board->historyArr[board->historyPly].capturedPiece = board->mailbox[capturedPawnPos];
-    }else{
+    }
+    else
+    {
         board->historyArr[board->historyPly].capturedPiece = board->mailbox[to];
     }
     board->historyPly++;
 }
 bool isSideInCheck(const Board *board, const enumPiece side)
 {
-    // see if this side's king lays within the enemy's attack pattern. 
-    enumPiece opp = side ==nWhite ? nBlack : nWhite; 
-    U64 attackPattern = getSideAttackPattern(board, opp); 
-    U64 kingPos = getSpecificColorPieces(board, side, nKing); 
+    // see if this side's king lays within the enemy's attack pattern.
+    enumPiece opp = side == nWhite ? nBlack : nWhite;
+    U64 attackPattern = getSideAttackPattern(board, opp);
+    U64 kingPos = getSpecificColorPieces(board, side, nKing);
     return kingPos & attackPattern;
 }
 void makeMove(Board *board, Move move)
@@ -298,7 +370,7 @@ void makeMove(Board *board, Move move)
 
     // save the state for this move
     saveBoardState(board, move);
-    if (piece == nRook || piece ==  nKing)
+    if (piece == nRook || piece == nKing)
         updateCastlingRights(board, piece, from);
 
     // reset en passant square
@@ -307,7 +379,7 @@ void makeMove(Board *board, Move move)
     { // set ep square to behind/above the pawn
         int capturedPawnPos = (int)to;
         capturedPawnPos += board->whiteToMove ? -8 : 8;
-        board->enPassantSquare = capturedPawnPos; 
+        board->enPassantSquare = capturedPawnPos;
     }
     // update half move clock
     if (piece == nPawn || isCapture(move))
@@ -327,16 +399,17 @@ void makeMove(Board *board, Move move)
     board->whiteToMove = !board->whiteToMove;
 }
 
-// unmove moved piece(s), including rooks if a castled occurred, promo pieces if promo occurred, and enpassant if that occured  
-void unmovePiece(Board *board , Move move , enumPiece capturedPiece){
+// unmove moved piece(s), including rooks if a castled occurred, promo pieces if promo occurred, and enpassant if that occured
+void unmovePiece(Board *board, Move move, enumPiece capturedPiece)
+{
     unsigned int from = getFrom(move);
     unsigned int to = getTo(move);
-    unsigned int flags= getFlags(move);
+    unsigned int flags = getFlags(move);
 
     enumPiece side = nWhite;
     enumPiece oppSide = nBlack;
-    // whichever side was the mover in last state 
-    if (board->whiteToMove) // if it's currently white to move that means black went last 
+    // whichever side was the mover in last state
+    if (board->whiteToMove) // if it's currently white to move that means black went last
     {
         side = nBlack;
         oppSide = nWhite;
@@ -351,53 +424,58 @@ void unmovePiece(Board *board , Move move , enumPiece capturedPiece){
     // has to be valid piece
     assert(piece >= nPawn && piece <= nKing && "The piece could not be found in any bb");
     // move from piece bb
-    board->pieces[piece] &= ~toBit; // unset to bit 
-    board->pieces[piece] |= fromBit;   // move back 
+    board->pieces[piece] &= ~toBit;  // unset to bit
+    board->pieces[piece] |= fromBit; // move back
 
     // move from side bb
     board->pieces[side] ^= (fromBit | toBit); // both guarenteed to be set and unset
-    // update unmove in mailbox 
+    // update unmove in mailbox
     board->mailbox[to] = capturedPiece; // no piece if none captured
     board->mailbox[from] = piece;
 
     if (capturedPiece >= nPawn && capturedPiece <= nKing)
     {
         // update captured piece's sidebb , piece bb
-        board->pieces[capturedPiece] ^= toBit; //toggle bit 
-        board->pieces[oppSide] ^= toBit; // toggle bit 
+        board->pieces[capturedPiece] ^= toBit; // toggle bit
+        board->pieces[oppSide] ^= toBit;       // toggle bit
     }
 
     // special cases
-    //  if en passant place captured piece below to bit 
-    if (flags == EN_PASSANT_CAPTURE_FLAG){
+    //  if en passant place captured piece below to bit
+    if (flags == EN_PASSANT_CAPTURE_FLAG)
+    {
         U64 capturePawnPos = 0;
         int pos = NO_SQUARE;
-        if (side == nWhite){
+        if (side == nWhite)
+        {
             capturePawnPos = toBit >> 8;
             pos = (int)to - 8;
         }
-        else{
+        else
+        {
             capturePawnPos = toBit << 8;
             pos = (int)to + 8;
         }
-        board->mailbox[pos] = nPawn;             // place empty square where piece used to be
+        board->mailbox[pos] = nPawn;              // place empty square where piece used to be
         board->pieces[nPawn] ^= capturePawnPos;   // toggle the captured pawn bit on
         board->pieces[oppSide] ^= capturePawnPos; // in the side aswell
     }
 
-    // if promo, remove promo piece from dest 
-    if (flags >= KNIGHT_PROMOTION_FLAG && flags <= QUEEN_PROMO_CAPTURE_FLAG){
-        // remove promo piece from from square 
-        board->pieces[piece] &= ~fromBit; 
-        board->pieces[nPawn] |= fromBit; // place pawn back 
+    // if promo, remove promo piece from dest
+    if (flags >= KNIGHT_PROMOTION_FLAG && flags <= QUEEN_PROMO_CAPTURE_FLAG)
+    {
+        // remove promo piece from from square
+        board->pieces[piece] &= ~fromBit;
+        board->pieces[nPawn] |= fromBit; // place pawn back
         board->mailbox[from] = nPawn;    // update mailbox
     }
 
     // if castling place rook back where it came (king alr moved back)
-    if (flags == KING_CASTLE_FLAG || flags== QUEEN_CASTLE_FLAG){
+    if (flags == KING_CASTLE_FLAG || flags == QUEEN_CASTLE_FLAG)
+    {
         unsigned int rookFrom = side == nWhite ? f1 : f8;
         unsigned int rookTo = side == nWhite ? h1 : h8;
-        if (flags== QUEEN_CASTLE_FLAG)
+        if (flags == QUEEN_CASTLE_FLAG)
         {
             rookFrom = side == nWhite ? d1 : d8;
             rookTo = side == nWhite ? a1 : a8;
@@ -411,7 +489,7 @@ void unmovePiece(Board *board , Move move , enumPiece capturedPiece){
         board->pieces[side] |= rookToBit;
 
         // Update mailbox
-        board->mailbox[rookFrom] = nWhite; 
+        board->mailbox[rookFrom] = nWhite;
         board->mailbox[rookTo] = nRook;
     }
 }
@@ -421,16 +499,16 @@ void unmakeMove(Board *board, Move move)
     board->historyPly--;
     MoveHistory *lastState = &board->historyArr[board->historyPly];
 
-    unmovePiece(board, move, lastState->capturedPiece );
+    unmovePiece(board, move, lastState->capturedPiece);
 
     // reinstate board state variables
     board->castlingRights = lastState->castlingRights;
     board->enPassantSquare = lastState->enPassantSquare;
     board->halfmoveClock = lastState->halfmoveClock;
-    board->fullmoveNumber = lastState->fullMoveNumber; 
-    board->whiteToMove= !board->whiteToMove; 
+    board->fullmoveNumber = lastState->fullMoveNumber;
+    board->whiteToMove = !board->whiteToMove;
 }
-
+// doesn't end with "\n"
 void printMove(Move move)
 {
     char fromAlgebraic[3];
@@ -446,10 +524,10 @@ void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 
     getPawnMoves(board, moveList, numMoves);
     getKnightMoves(board, moveList, numMoves);
-    // getBishopMoves(board, moveList, numMoves);
-    // getRookMoves(board, moveList, numMoves);
-    // getQueenMoves(board, moveList, numMoves);
-    // getKingMoves(board, moveList, numMoves);
+    getBishopMoves(board, moveList, numMoves);
+    getRookMoves(board, moveList, numMoves);
+    getQueenMoves(board, moveList, numMoves);
+    getKingMoves(board, moveList, numMoves);
 }
 
 void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)

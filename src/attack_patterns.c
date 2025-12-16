@@ -6,8 +6,8 @@ U64 KING_ATTACK_LOOKUP[64] = {0ULL};
 U64 ROOK_ATTACK_LOOKUP[64][4096] = {0ULL};
 U64 BISHOP_ATTACK_LOOKUP[64][512] = {0ULL};
 
-SMagic BishopMagicTable[64]; 
-SMagic RookMagicTable[64] ; 
+SMagic BishopMagicTable[64];
+SMagic RookMagicTable[64];
 
 U64 noNoEa(U64 b) { return (b << 17) & ~FILE_A; }
 U64 noEaEa(U64 b) { return (b << 10) & ~(FILE_A | FILE_B); }
@@ -26,18 +26,17 @@ U64 southEast(U64 b) { return (b >> 7) & ~RANK_8 & ~FILE_A; }
 U64 northWest(U64 b) { return (b << 7) & ~FILE_H & ~RANK_1; }
 U64 southWest(U64 b) { return (b >> 9) & ~FILE_H & ~RANK_8; }
 
-// call on start up 
+// call on start up
 void precomputeAllAttacks(void)
 {
-    precomputePawnAttacks(); 
-    precomputeKnightAttacks(); 
-    precomputeKingAttacks(); 
+    precomputePawnAttacks();
+    precomputeKnightAttacks();
+    precomputeKingAttacks();
 
-    // sliding moves 
-    precomputeMagicNumbers(); 
-    precomputeSlidingPieceLookupTables(); 
+    // sliding moves
+    precomputeMagicNumbers();
+    precomputeSlidingPieceLookupTables();
 }
-
 
 void precomputePawnAttacks()
 {
@@ -147,7 +146,6 @@ void precomputeBishopMasks()
     }
 }
 
-
 U64 iterative_getBishopAttackPattern(U64 block, enumSquare sq)
 {
     U64 result = 0ULL;
@@ -223,16 +221,18 @@ int popLeastSignificantBit(U64 *bitboard)
     return bitIndex;
 }
 
-U64 createBlockerConfig(int blockerIndex, int numBitsInMask, U64 mask){
-    U64 result =0; 
-    for(int i =0; i< numBitsInMask; i++){
+U64 createBlockerConfig(int blockerIndex, int numBitsInMask, U64 mask)
+{
+    U64 result = 0;
+    for (int i = 0; i < numBitsInMask; i++)
+    {
         int index = popLeastSignificantBit(&mask);
         if (blockerIndex & (1 << i))
         {
-            result |= (1ULL << index)   ;
+            result |= (1ULL << index);
         }
     }
-    return result; 
+    return result;
 }
 
 // find magic numbers through trial and error
@@ -315,46 +315,49 @@ void printPawnAttacks()
 
 U64 getSideAttackPattern(const Board *board, enumPiece side)
 {
-    U64 result = 0;  
-    // for each piece in this side, add its attack pattern to the result 
-    for(int piece=nPawn ; piece<=nKing; piece++){
-        U64 positions = getSpecificColorPieces(board , side, piece);
-        
-        // iterate through set bits and add attack pattern to result 
-        while (positions){
+    U64 result = 0;
+    // for each piece in this side, add its attack pattern to the result
+    for (int piece = nPawn; piece <= nKing; piece++)
+    {
+        U64 positions = getSpecificColorPieces(board, side, piece);
+
+        // iterate through set bits and add attack pattern to result
+        while (positions)
+        {
             int square = __builtin_ctzll(positions);
             positions = CLEARLSBIT(positions);
             U64 blockers = getAllPieces(board);
-            switch (piece){
-                case nPawn:
-                    result |= getPawnAttackPattern(square , side); 
-                    break; 
-                case nKnight:
-                    result |= getKnightAttackPattern(square); 
-                    break;
-                case nBishop:
-                    blockers &= BishopMagicTable[square].mask; 
-                    result |= getBishopAttackPattern(square, blockers);
-                    break;
-                case nRook:
-                    blockers &= RookMagicTable[square].mask;
-                    result |= getRookAttackPattern(square, blockers);
-                    break;
-                case nQueen:
-                    blockers &= (BishopMagicTable[square].mask | RookMagicTable[square].mask) ;
-                    result |= getQueenAttackPattern(square, blockers);
-                    break;
-                case nKing:
-                    result |= getKingAttackAttackPattern(square); 
-                    break;
-                default:
-                    puts("Get Side Attack Pattern Called With Invalid Piece Type. Closing Program..."); 
-                    abort(); 
-                    break; 
+            switch (piece)
+            {
+            case nPawn:
+                result |= getPawnAttackPattern(square, side);
+                break;
+            case nKnight:
+                result |= getKnightAttackPattern(square);
+                break;
+            case nBishop:
+                blockers &= BishopMagicTable[square].mask;
+                result |= getBishopAttackPattern(square, blockers);
+                break;
+            case nRook:
+                blockers &= RookMagicTable[square].mask;
+                result |= getRookAttackPattern(square, blockers);
+                break;
+            case nQueen:
+                blockers &= (BishopMagicTable[square].mask | RookMagicTable[square].mask);
+                result |= getQueenAttackPattern(square, blockers);
+                break;
+            case nKing:
+                result |= getKingAttackPattern(square);
+                break;
+            default:
+                puts("Get Side Attack Pattern Called With Invalid Piece Type. Closing Program...");
+                abort();
+                break;
             }
         }
     }
-    return result; 
+    return result;
 }
 
 void printKnightAttacks()
@@ -366,7 +369,8 @@ void printKnightAttacks()
     }
 }
 
-void precomputeMagicNumbersAndSaveToFile(){
+void precomputeMagicNumbersAndSaveToFile()
+{
 
     // Generate Bishop Magic Numbers
     printf("Generating Bishop Magic Numbers...\n");
@@ -384,18 +388,17 @@ void precomputeMagicNumbersAndSaveToFile(){
     {
         int bitsSet = __builtin_popcountll(BishopMagicTable[square].mask);
         int shiftAmt = 64 - bitsSet;
-        U64 magic =  findMagicNum(true, square);
+        U64 magic = findMagicNum(true, square);
 
-        
         printf("Square %2d: { 0x%016llx, 0x%016llx, %d }\n",
                square, BishopMagicTable[square].mask,
-               magic ,
+               magic,
                shiftAmt);
 
         if (magic == 0)
         {
-            printf("Magic Generation failed, Returned magic number was zero"); 
-            abort(); 
+            printf("Magic Generation failed, Returned magic number was zero");
+            abort();
         }
 
         fprintf(fp, "    { 0x%016llxULL, 0x%016llxULL, %d }%s\n",
@@ -464,8 +467,8 @@ void precomputeMagicNumbers()
             abort();
         }
 
-        BishopMagicTable[square].magic = magic; 
-        BishopMagicTable[square].shiftAmt = shiftAmt; 
+        BishopMagicTable[square].magic = magic;
+        BishopMagicTable[square].shiftAmt = shiftAmt;
     }
 
     // generate rook magics
@@ -481,11 +484,10 @@ void precomputeMagicNumbers()
             printf("Magic Generation failed, Returned magic number was zero");
             abort();
         }
-        
-        RookMagicTable[square].magic = magic; 
-        RookMagicTable[square].shiftAmt= shiftAmt; 
-    }
 
+        RookMagicTable[square].magic = magic;
+        RookMagicTable[square].shiftAmt = shiftAmt;
+    }
 }
 
 // Call this function after magic numbers have been precomputed and copy-pasted into the SMagic tables
@@ -636,7 +638,7 @@ void writeAllAttackPatternsToFile(void)
     if (!fp)
     {
         fprintf(stderr, "Error: Could not open attack_patterns_visualization.txt for writing\n");
-        abort(); 
+        abort();
     }
 
     fprintf(fp, "========================================\n");
@@ -677,7 +679,7 @@ void writeAllAttackPatternsToFile(void)
         fprintBB(fp, rook | bishop);
 
         // King Attacks
-        U64 king = getKingAttackAttackPattern(square);
+        U64 king = getKingAttackPattern(square);
         fprintf(fp, "\nKing Attacks:\n");
         fprintBB(fp, king);
 
@@ -721,8 +723,9 @@ void precomputeSlidingPieceLookupTables()
     printf("Magic bitboard initialization complete!\n");
 }
 
-//test lookup generation 
-void testLookupGeneration(){
+// test lookup generation
+void testLookupGeneration()
+{
     precomputeSlidingPieceLookupTables();
 
     // test out 50 random attack patterns and see if they give the correct response
