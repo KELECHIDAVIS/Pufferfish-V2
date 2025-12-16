@@ -27,8 +27,8 @@ extern void precomputeAllAttacks(void); // Call this once at startup
 extern void precomputeKnightAttacks(void);
 extern void precomputePawnAttacks(void);
 extern void precomputeKingAttacks(void);
-extern void precomputeRookMasks(void);
-extern void precomputeBishopMasks(void);
+extern void precomputeMagicNumbers(void); // call this for  
+extern void precomputeSlidingPieceLookupTables(void);  // just compute attack patterns on startup so we don't have to copy and paste file text (way too big )
 extern U64 findMagicNum(bool isBishop, enumSquare square); // continuoslly loop until we find a valid magic number  
 // get index within hashtable 
 static inline int magicIndex(SMagic* entry , U64 blockers){
@@ -86,12 +86,12 @@ static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singleP
 // Magic bb lookup tables
 static inline U64 getRookAttackPattern(enumSquare square, U64 occupancy){
     int index = magicIndex(&RookMagicTable[square], occupancy);
-
+    
     return ROOK_ATTACK_LOOKUP[square][index];
 }
 static inline U64 getBishopAttackPattern(enumSquare square, U64 occupancy){
     int index = magicIndex(&BishopMagicTable[square], occupancy);
-
+    
     return BISHOP_ATTACK_LOOKUP[square][index];
 }
 static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
@@ -102,7 +102,8 @@ static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
 // Debug/utility functions
 extern void printKnightAttacks(void);
 extern void printPawnAttacks(void);
+extern void precomputeRookMasks(void);
+extern void precomputeBishopMasks(void);
 extern void precomputeMagicNumbersAndSaveToFile(void); // for Smagic tables  
 extern void precomputeSlidingPieceLookupTablesAndSaveToFile(void);// save all possible attack patterns to files  
-extern void precomputeSlidingPieceLookupTables(void);  // just compute attack patterns on startup so we don't have to copy and paste file text (way too big )
 #endif // ATTACKS_H
