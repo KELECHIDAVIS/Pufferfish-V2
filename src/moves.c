@@ -1,4 +1,4 @@
-#include "moves.h"
+ #include "moves.h"
 
 // extract pseudo legal moves  
 static void extractMovesFromBB(Move *moveList, size_t *numMoves, U64 possibleMoves, const enumSquare fromSquare, const MoveFlag flag)
@@ -25,6 +25,29 @@ void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
         enumSquare fromSquare = __builtin_ctzll(pos);
 
         U64 attackPattern = getKnightAttackPattern(fromSquare);
+
+        // and with empty to get quiet moves
+        U64 empty = ~getAllPieces(board);
+        extractMovesFromBB(moveList, numMoves, attackPattern & empty, fromSquare, QUIET_MOVE_FLAG);
+
+        // and with opponent pieces to get captures
+        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
+        U64 opponentPieces = getColorPieces(board, opponentSide);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
+    }
+}
+void getBishopMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack; 
+    U64 bishops = getSpecificColorPieces(board, side, nBishop); 
+
+    while(bishops){
+        U64 pos = LSBIT(bishops);
+        bishops = CLEARLSBIT(bishops);
+        enumSquare fromSquare = __builtin_ctzll(pos);
+
+        U64 blockers = getAllPieces(board) & BishopMagicTable[fromSquare].mask; 
+        U64 attackPattern = getBishopAttackPattern(fromSquare, blockers);
 
         // and with empty to get quiet moves
         U64 empty = ~getAllPieces(board);
@@ -257,6 +280,14 @@ void saveBoardState(Board *board, Move move)
     }
     board->historyPly++;
 }
+bool isSideInCheck(const Board *board, const enumPiece side)
+{
+    // see if this side's king lays within the enemy's attack pattern. 
+    enumPiece opp = side ==nWhite ? nBlack : nWhite; 
+    U64 attackPattern = getSideAttackPattern(board, opp); 
+    U64 kingPos = getSpecificColorPieces(board, side, nKing); 
+    return kingPos & attackPattern;
+}
 void makeMove(Board *board, Move move)
 {
 
@@ -399,6 +430,7 @@ void unmakeMove(Board *board, Move move)
     board->fullmoveNumber = lastState->fullMoveNumber; 
     board->whiteToMove= !board->whiteToMove; 
 }
+
 void printMove(Move move)
 {
     char fromAlgebraic[3];

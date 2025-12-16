@@ -8,6 +8,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdint.h>
+
+
+
 // castling rights
 #define W_K_CASTLE 0b1000
 #define W_Q_CASTLE 0b0100
@@ -28,6 +31,10 @@
 // for searching specifically
 #define MAX_SEARCH_DEPTH 256
 typedef unsigned long long U64;
+
+// returns the lsb and cleared lsb 
+#define LSBIT(X) ((X) & (-(X)))
+#define CLEARLSBIT(X) ((X) & ((X) - 1))
 
 typedef enum
 {
@@ -137,10 +144,24 @@ typedef struct
   int historyPly;
 } Board;
 
-extern U64 getAllPieces(const Board *board);
-extern U64 getColorPieces(const Board *board, enumPiece color);
-extern U64 getPieceTypePieces(const Board *board, enumPiece pieceType);
-extern U64 getSpecificColorPieces(const Board *board, enumPiece color, enumPiece pieceType);
+static inline U64 getAllPieces(const Board *board)
+{
+  return board->pieces[nWhite] | board->pieces[nBlack];
+}
+static inline U64 getColorPieces(const Board *board, enumPiece color)
+{
+    return board->pieces[color];
+}
+// returns bitboard of all pieces of given type regardless of color
+static inline U64 getPieceTypePieces(const Board *board, enumPiece pieceType)
+{
+  return board->pieces[pieceType];
+}
+// returns bitboard of all pieces of given type and color
+static inline U64 getSpecificColorPieces(const Board *board, enumPiece color, enumPiece pieceType)
+{
+  return board->pieces[color] & board->pieces[pieceType];
+}
 extern void initBoard(Board *board, char *fen);
 extern void addPiece(Board *board, enumPiece color, enumPiece pieceType, enumSquare square);
 extern void printBB(U64 bb);

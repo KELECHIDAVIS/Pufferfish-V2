@@ -84,6 +84,7 @@ static inline U64 getDoublePushPattern(const U64 emptySquares, const U64 singleP
 }
 
 // Magic bb lookup tables
+// pass in the relevant occupancy of the squares 
 static inline U64 getRookAttackPattern(enumSquare square, U64 occupancy){
     int index = magicIndex(&RookMagicTable[square], occupancy);
     
@@ -98,6 +99,9 @@ static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
 {
     return getBishopAttackPattern(square, occupancy) | getRookAttackPattern(square, occupancy);
 }
+
+extern U64 getSideAttackPattern(const Board *board, enumPiece side);
+
 
 // Debug/utility functions
 extern void printKnightAttacks(void);

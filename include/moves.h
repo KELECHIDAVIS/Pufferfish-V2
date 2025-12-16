@@ -5,8 +5,7 @@
 #include "attack_patterns.h"
 
 #define MAX_MOVES 256 // maximum number of legal moves possible in a position (max is 218 for chess)
-#define LSBIT(X) ((X) & (-(X)))
-#define CLEARLSBIT(X) ((X) & ((X) - 1))
+
 
 
 // Moves are encoded into 16 bit integers as follows:
@@ -68,7 +67,9 @@ extern void getQueenMoves(const Board *board, Move *moveList, size_t *numMoves);
 extern void getKingMoves(const Board *board, Move *moveList, size_t *numMoves);
 extern void translateFlagToAlgebraic(MoveFlag flag, char *buffer);
 
+extern bool isSideInCheck(const Board* board , const enumPiece side );    
 extern void makeMove(Board *board, Move move);
 extern void unmakeMove(Board *board, Move move);
+
 //extern void printMove(Move move);
 #endif // MOVES_H

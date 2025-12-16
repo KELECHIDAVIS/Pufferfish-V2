@@ -2,7 +2,7 @@
     "cmake.configureOnOpen": true,
     "cmake.generator": "MinGW Makefiles",
     "cmake.buildDirectory": "${workspaceFolder}/build",
-    "cmake.buildType": "Release", 
+    "cmake.buildType": "Debug", 
     "cmake.debugConfig": {
         "MIMode": "gdb",
         "miDebuggerPath": "gdb.exe",

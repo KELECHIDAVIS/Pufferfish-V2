@@ -1,32 +1,19 @@
 #include "board.h"
 
-U64 getAllPieces(const Board *board)
-{
-    return board->pieces[nWhite] | board->pieces[nBlack];
-}
 
-U64 getColorPieces(const Board *board, enumPiece color)
-{
-    return board->pieces[color];
-}
 
-// returns bitboard of all pieces of given type regardless of color
-U64 getPieceTypePieces(const Board *board, enumPiece pieceType)
-{
-    return board->pieces[pieceType];
-}
 
-// returns bitboard of all pieces of given type and color
-U64 getSpecificColorPieces(const Board *board, enumPiece color, enumPiece pieceType)
-{
-    return board->pieces[color] & board->pieces[pieceType];
-}
+
+
+
+
 
 void addPiece(Board *board, enumPiece color, enumPiece pieceType, enumSquare square)
 {
     U64 bit = 1ULL << square;
     board->pieces[color] |= bit;
     board->pieces[pieceType] |= bit;
+    board->mailbox[square] = pieceType  ; 
 }
 void printBB(U64 bb)
 {

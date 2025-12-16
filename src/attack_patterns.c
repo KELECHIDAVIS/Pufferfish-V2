@@ -313,8 +313,49 @@ void printPawnAttacks()
     }
 }
 
-
-
+U64 getSideAttackPattern(const Board *board, enumPiece side)
+{
+    U64 result = 0;  
+    // for each piece in this side, add its attack pattern to the result 
+    for(int piece=nPawn ; piece<=nKing; piece++){
+        U64 positions = getSpecificColorPieces(board , side, piece);
+        
+        // iterate through set bits and add attack pattern to result 
+        while (positions){
+            int square = __builtin_ctzll(positions);
+            positions = CLEARLSBIT(positions);
+            U64 blockers = getAllPieces(board);
+            switch (piece){
+                case nPawn:
+                    result |= getPawnAttackPattern(square , side); 
+                    break; 
+                case nKnight:
+                    result |= getKnightAttackPattern(square); 
+                    break;
+                case nBishop:
+                    blockers &= BishopMagicTable[square].mask; 
+                    result |= getBishopAttackPattern(square, blockers);
+                    break;
+                case nRook:
+                    blockers &= RookMagicTable[square].mask;
+                    result |= getRookAttackPattern(square, blockers);
+                    break;
+                case nQueen:
+                    blockers &= (BishopMagicTable[square].mask | RookMagicTable[square].mask) ;
+                    result |= getQueenAttackPattern(square, blockers);
+                    break;
+                case nKing:
+                    result |= getKingAttackAttackPattern(square); 
+                    break;
+                default:
+                    puts("Get Side Attack Pattern Called With Invalid Piece Type. Closing Program..."); 
+                    abort(); 
+                    break; 
+            }
+        }
+    }
+    return result; 
+}
 
 void printKnightAttacks()
 {
