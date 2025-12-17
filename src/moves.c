@@ -518,7 +518,7 @@ void printMove(Move move)
     translateSquareToAlgebraic(getFrom(move), fromAlgebraic);
     translateSquareToAlgebraic(getTo(move), toAlgebraic);
     translateFlagToAlgebraic((MoveFlag)getFlags(move), flagAlgebraic);
-    printf("%s to %s, Flag: %s", fromAlgebraic, toAlgebraic, flagAlgebraic);
+    printf("%s%s, Flag: %s", fromAlgebraic, toAlgebraic, flagAlgebraic);
 }
 void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
