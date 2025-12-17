@@ -99,10 +99,7 @@ static inline U64 getBishopAttackPattern(enumSquare square, U64 occupancy)
 
     return BISHOP_ATTACK_LOOKUP[square][index];
 }
-static inline U64 getQueenAttackPattern(enumSquare square, U64 occupancy)
-{
-    return getBishopAttackPattern(square, occupancy) | getRookAttackPattern(square, occupancy);
-}
+
 
 extern U64 getSideAttackPattern(const Board *board, enumPiece side);
 
