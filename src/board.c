@@ -310,7 +310,7 @@ static void initMailbox ( Board * board){
 }
 void initBoard(Board *board, char *fen)
 {
-
+    
     char *curr = fen; // copy fen
 
     // now at side to move

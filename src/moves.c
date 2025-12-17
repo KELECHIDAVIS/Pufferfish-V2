@@ -183,58 +183,7 @@ void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
         }
     }
 }
-void translateFlagToAlgebraic(const MoveFlag flag, char *buffer)
-{
-    switch (flag)
-    {
-    case QUIET_MOVE_FLAG:
-        buffer[0] = 'Q';
-        break;
-    case DOUBLE_PAWN_PUSH_FLAG:
-        buffer[0] = 'D';
-        break;
-    case KING_CASTLE_FLAG:
-        buffer[0] = 'K';
-        break;
-    case QUEEN_CASTLE_FLAG:
-        buffer[0] = 'Q';
-        break;
-    case CAPTURE_FLAG:
-        buffer[0] = 'C';
-        break;
-    case EN_PASSANT_CAPTURE_FLAG:
-        buffer[0] = 'E';
-        break;
-    case KNIGHT_PROMOTION_FLAG:
-        buffer[0] = 'N';
-        break;
-    case BISHOP_PROMOTION_FLAG:
-        buffer[0] = 'B';
-        break;
-    case ROOK_PROMOTION_FLAG:
-        buffer[0] = 'R';
-        break;
-    case QUEEN_PROMOTION_FLAG:
-        buffer[0] = 'Q';
-        break;
-    case KNIGHT_PROMO_CAPTURE_FLAG:
-        buffer[0] = 'N';
-        break;
-    case BISHOP_PROMO_CAPTURE_FLAG:
-        buffer[0] = 'B';
-        break;
-    case ROOK_PROMO_CAPTURE_FLAG:
-        buffer[0] = 'R';
-        break;
-    case QUEEN_PROMO_CAPTURE_FLAG:
-        buffer[0] = 'Q';
-        break;
-    default:
-        buffer[0] = '?';
-        break;
-    }
-    buffer[1] = '\0';
-}
+
 // if move is a rook move update if king move disable castling for side
 static void updateCastlingRights(Board *board, enumPiece piece, unsigned int from)
 {
@@ -563,16 +512,52 @@ void unmakeMove(Board *board, Move move)
     board->fullmoveNumber = lastState->fullMoveNumber;
     board->whiteToMove = !board->whiteToMove;
 }
+void getSquareName(unsigned int sq, char *buf)
+{
+    buf[0] = 'a' + (char)(sq % 8);
+    buf[1] = '1' + (char)(sq / 8);
+    buf[2] = '\0';
+}
 // doesn't end with "\n"
+// moves.c
+
 void printMove(Move move)
 {
-    char fromAlgebraic[3];
-    char toAlgebraic[3];
-    char flagAlgebraic[3];
-    translateSquareToAlgebraic(getFrom(move), fromAlgebraic);
-    translateSquareToAlgebraic(getTo(move), toAlgebraic);
-    translateFlagToAlgebraic((MoveFlag)getFlags(move), flagAlgebraic);
-    printf("%s%s, Flag: %s", fromAlgebraic, toAlgebraic, flagAlgebraic);
+    unsigned int from = getFrom(move);
+    unsigned int to = getTo(move);
+    unsigned int flags = getFlags(move);
+
+    char fromStr[3];
+    char toStr[3];
+    getSquareName(from, fromStr);
+    getSquareName(to, toStr);
+
+    printf("%s%s", fromStr, toStr);
+
+    // Append promotion piece character if necessary
+    // Based on your MoveFlag enum in moves.h
+    switch (flags)
+    {
+    case KNIGHT_PROMOTION_FLAG:
+    case KNIGHT_PROMO_CAPTURE_FLAG:
+        printf("n");
+        break;
+    case BISHOP_PROMOTION_FLAG:
+    case BISHOP_PROMO_CAPTURE_FLAG:
+        printf("b");
+        break;
+    case ROOK_PROMOTION_FLAG:
+    case ROOK_PROMO_CAPTURE_FLAG:
+        printf("r");
+        break;
+    case QUEEN_PROMOTION_FLAG:
+    case QUEEN_PROMO_CAPTURE_FLAG:
+        printf("q");
+        break;
+    default:
+        // Not a promotion move
+        break;
+    }
 }
 void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
