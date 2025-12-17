@@ -133,6 +133,54 @@ void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
         enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
         U64 opponentPieces = getColorPieces(board, opponentSide);
         extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
+
+        // castling
+        // king and relevant rook must not have been moved (the rights still have to be active, they get turned off during make move )
+        // king cannot be in check (in the opponent attack pattern)
+        // the squares between cannot be in the attack pattern either
+        U64 oppAttackPattern = getSideAttackPattern(board, opponentSide);
+        if (!(pos & oppAttackPattern)) // if king not in check
+        {
+            U64 destination = 0; // where king ends up
+            U64 inBetween = 0; // all inbetween squares that cannot be in attack pattern 
+            if (side == nWhite)
+            {
+                // check kingside
+                if (board->castlingRights & W_K_CASTLE)
+                {
+                    // f1 and g1 have to be empty and not in attack pattern
+                    destination = (1ULL << g1);  
+                    inBetween = (1ULL << f1) | destination;
+                    // inbetween cannot be in attack pattern and has to be empty 
+                    if((!(inBetween & oppAttackPattern) ) && ((inBetween & empty) == inBetween)) 
+                        extractMovesFromBB(moveList, numMoves, destination , fromSquare, KING_CASTLE_FLAG); 
+                }else if (board->castlingRights & W_Q_CASTLE){
+                    destination = (1ULL << c1);
+                    inBetween = (1ULL << b1) | (1ULL << d1 )| destination;
+                    if ((!(inBetween & oppAttackPattern)) && ((inBetween & empty) == inBetween)) 
+                        extractMovesFromBB(moveList, numMoves, destination, fromSquare, QUEEN_CASTLE_FLAG); 
+                }
+            }
+            else // black 
+            {
+                if (board->castlingRights & B_K_CASTLE)
+                {
+                    // f8 and g8 have to be empty and not in attack pattern
+                    destination = (1ULL << g8);
+                    inBetween = (1ULL << f8) | destination;
+                    // inbetween cannot be in attack pattern and has to be empty
+                    if ((!(inBetween & oppAttackPattern)) && ((inBetween & empty) == inBetween))
+                        extractMovesFromBB(moveList, numMoves, destination, fromSquare, KING_CASTLE_FLAG);
+                }
+                else if (board->castlingRights & W_Q_CASTLE)
+                {
+                    destination = (1ULL << c8);
+                    inBetween = (1ULL << b8) | (1ULL << d8) | destination;
+                    if ((!(inBetween & oppAttackPattern)) && ((inBetween & empty) == inBetween))
+                        extractMovesFromBB(moveList, numMoves, destination, fromSquare, QUEEN_CASTLE_FLAG);
+                }
+            }
+        }
     }
 }
 void translateFlagToAlgebraic(const MoveFlag flag, char *buffer)
