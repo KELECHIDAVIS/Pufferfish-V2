@@ -466,6 +466,7 @@ void unmovePiece(Board *board, Move move, enumPiece capturedPiece)
         side = nBlack;
         oppSide = nWhite;
     }
+
     U64 fromBit = 1ULL << from;
     U64 toBit = 1ULL << to;
 
@@ -475,24 +476,19 @@ void unmovePiece(Board *board, Move move, enumPiece capturedPiece)
 
     // has to be valid piece
     assert(piece >= nPawn && piece <= nKing && "The piece could not be found in any bb");
+
     // move from piece bb
     board->pieces[piece] &= ~toBit;  // unset to bit
     board->pieces[piece] |= fromBit; // move back
 
     // move from side bb
     board->pieces[side] ^= (fromBit | toBit); // both guarenteed to be set and unset
+
     // update unmove in mailbox
-    board->mailbox[to] = capturedPiece; // no piece if none captured
     board->mailbox[from] = piece;
+    board->mailbox[to] = nWhite ; //empty  
 
-    if (capturedPiece >= nPawn && capturedPiece <= nKing)
-    {
-        // update captured piece's sidebb , piece bb
-        board->pieces[capturedPiece] ^= toBit; // toggle bit
-        board->pieces[oppSide] ^= toBit;       // toggle bit
-    }
-
-    // special cases
+    // special capture case 
     //  if en passant place captured piece below to bit
     if (flags == EN_PASSANT_CAPTURE_FLAG)
     {
@@ -509,8 +505,16 @@ void unmovePiece(Board *board, Move move, enumPiece capturedPiece)
             pos = (int)to + 8;
         }
         board->mailbox[pos] = nPawn;              // place empty square where piece used to be
-        board->pieces[nPawn] ^= capturePawnPos;   // toggle the captured pawn bit on
-        board->pieces[oppSide] ^= capturePawnPos; // in the side aswell
+        board->pieces[nPawn] |= capturePawnPos;   //set bit captured pawn bit on
+        board->pieces[oppSide] |= capturePawnPos; // in the side aswell
+    }else{
+        // standard capture 
+        if (capturedPiece >= nPawn && capturedPiece <= nKing)
+        {
+            // update captured piece's sidebb , piece bb
+            board->pieces[capturedPiece] ^= toBit; // toggle bit
+            board->pieces[oppSide] ^= toBit;       // toggle bit
+        }
     }
 
     // if promo, remove promo piece from dest
@@ -534,12 +538,11 @@ void unmovePiece(Board *board, Move move, enumPiece capturedPiece)
         }
         U64 rookFromBit = 1ULL << rookFrom;
         U64 rookToBit = 1ULL << rookTo;
-
-        board->pieces[nRook] ^= rookFromBit;
-        board->pieces[nRook] |= rookToBit;
-        board->pieces[side] ^= rookFromBit;
-        board->pieces[side] |= rookToBit;
-
+        
+        // Move Rook bits
+        board->pieces[nRook] ^= (rookFromBit | rookToBit); // Toggle both to swap
+        board->pieces[side] ^= (rookFromBit | rookToBit);
+        
         // Update mailbox
         board->mailbox[rookFrom] = nWhite;
         board->mailbox[rookTo] = nRook;
