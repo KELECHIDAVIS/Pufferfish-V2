@@ -95,9 +95,26 @@ void getQueenMoves(const Board *board, Move *moveList, size_t *numMoves)
         queen = CLEARLSBIT(queen);
         enumSquare fromSquare = __builtin_ctzll(pos);
 
-        U64 blockers = getAllPieces(board) & (BishopMagicTable[fromSquare].mask | RookMagicTable[fromSquare].mask);
-        U64 attackPattern = getQueenAttackPattern(fromSquare, blockers);
+        puts("Queen Pos"); 
+        printBB(pos); 
 
+        U64 blockers = getAllPieces(board) & (BishopMagicTable[fromSquare].mask | RookMagicTable[fromSquare].mask);
+
+        puts("blockers: "); 
+        printBB(blockers)   ; 
+        U64 attackPattern = getQueenAttackPattern(fromSquare, blockers);
+        puts("Queen Attack Pattern: "); 
+        printBB(attackPattern); 
+
+        puts("Relevant Mask For Bishop:")
+        printBB(BishopMagicTable[fromSquare].mask)  ; 
+        puts("Bishop Attack Pattern From Square: "); 
+        printBB(getBishopAttackPattern(fromSquare, getAllPieces(board ) & BishopMagicTable[fromSquare].mask));
+
+        puts("Relevant Mask For Rook:")
+        printBB(RookMagicTable[fromSquare].mask);
+        puts("Rook Attack Pattern From Square: ");
+        printBB(getBishopAttackPattern(fromSquare, getAllPieces(board) & BishopMagicTable[fromSquare].mask));
         // and with empty to get quiet moves
         U64 empty = ~getAllPieces(board);
         extractMovesFromBB(moveList, numMoves, attackPattern & empty, fromSquare, QUIET_MOVE_FLAG);
