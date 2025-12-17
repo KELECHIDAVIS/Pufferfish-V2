@@ -1,8 +1,4 @@
 todo: 
 -perft:
-	depth of 4 has more captures than supposed to (1610 spose to be 1576)
-	- main issues brought up, should only be counting moves flags when at a depth of 1 
-	- should be counting checks deliverd by making the move ( in the loop)
-	- *implement a zobrist hash so I can sanity check that my board state is exactly the same after a make move and unmake move cycle. 
-	- make a testing cli similar to stockfish that allows me to set board position, make moves, and divide at certain depths 
-	
+	- the plan is to download a gui debugging tool (arena chess) to see exactly what my engine in thinking. 
+	- to do so, I have to make a uci interface.
