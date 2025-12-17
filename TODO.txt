@@ -4,3 +4,5 @@ todo:
 	- main issues brought up, should only be counting moves flags when at a depth of 1 
 	- should be counting checks deliverd by making the move ( in the loop)
 	- *implement a zobrist hash so I can sanity check that my board state is exactly the same after a make move and unmake move cycle. 
+	- make a testing cli similar to stockfish that allows me to set board position, make moves, and divide at certain depths 
+	
