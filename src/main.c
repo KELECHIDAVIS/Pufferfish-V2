@@ -145,9 +145,7 @@ void parseGo(Board *board, char *line)
         }
         printf("Running perft depth %d...\n", depth);
 
-        U64 nodes = divide(board, depth);
-
-        printf("\nNodes: %llu\n", nodes);
+        divide(board, depth);
     }
     else
     {
@@ -225,8 +223,6 @@ int main()
         }
         else if (strcmp(line, "d") == 0)
         {
-            // Custom command: type "d" in console to see board
-            printChessBoard(&board);
             printBoardDetails(&board);
         }
     }

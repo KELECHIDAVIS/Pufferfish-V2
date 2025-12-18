@@ -51,6 +51,6 @@ U64 divide(Board *board, int depth)
         unmakeMove(board, move_list[i]);
     }
 
-    printf("\nTotal nodes at depth %d: %llu\n", depth, totalNodes);
+    printf("\nNodes searched: %llu\n", depth, totalNodes);
     return totalNodes;
 }

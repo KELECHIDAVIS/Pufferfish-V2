@@ -81,16 +81,128 @@ void printChessBoard(Board *board)
     printf("   _ _ _ _ _ _ _ _ \n");
     printf("   a b c d e f g h \n");
 }
+void getFEN(Board *board, char *fen)
+{
+    int pos = 0;
+
+    // 1. Piece placement
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        int emptySquares = 0;
+        for (int file = 0; file < 8; file++)
+        {
+            enumSquare square = rank * 8 + file;
+            U64 bit = 1ULL << square;
+
+            // Check if there's a piece here
+            enumPiece pieceType = nWhite; // Default/Empty in your mailbox logic
+            U64 allPieces = board->pieces[nWhite] | board->pieces[nBlack];
+
+            if (bit & allPieces)
+            {
+                // If we found a piece, first write any accumulated empty squares
+                if (emptySquares > 0)
+                {
+                    fen[pos++] = emptySquares + '0';
+                    emptySquares = 0;
+                }
+
+                // Determine piece type and color
+                char c = 'x';
+                char possible[] = {'p', 'n', 'b', 'r', 'q', 'k'};
+                for (int i = 2; i < 8; i++)
+                {
+                    if (bit & board->pieces[i])
+                    {
+                        c = possible[i - 2];
+                        break;
+                    }
+                }
+                if (bit & board->pieces[nWhite])
+                    c = toupper(c);
+                fen[pos++] = c;
+            }
+            else
+            {
+                emptySquares++;
+            }
+        }
+        if (emptySquares > 0)
+            fen[pos++] = emptySquares + '0';
+        if (rank > 0)
+            fen[pos++] = '/';
+    }
+
+    // 2. Side to move
+    fen[pos++] = ' ';
+    fen[pos++] = board->whiteToMove ? 'w' : 'b';
+
+    // 3. Castling rights
+    fen[pos++] = ' ';
+    int startPos = pos;
+    if (board->castlingRights & W_K_CASTLE)
+        fen[pos++] = 'K';
+    if (board->castlingRights & W_Q_CASTLE)
+        fen[pos++] = 'Q';
+    if (board->castlingRights & B_K_CASTLE)
+        fen[pos++] = 'k';
+    if (board->castlingRights & B_Q_CASTLE)
+        fen[pos++] = 'q';
+    if (pos == startPos)
+        fen[pos++] = '-';
+
+    // 4. En Passant Square
+    fen[pos++] = ' ';
+    // Note: To match Stockfish exactly, you'd only print this
+    // if a capture is possible, but here we print the stored square.
+    if (board->enPassantSquare >= a1 && board->enPassantSquare <= h8)
+    {
+        // if a current side pawn can capture the ep square then we should print it 
+        if (board->whiteToMove){
+            U64 pawnPos = board->enPassantSquare >> 9 | board->enPassantSquare>> 7; 
+            if (pawnPos & getSpecificColorPieces(board, nWhite, nPawn)){
+                char sqBuf[3];
+                translateSquareToAlgebraic(board->enPassantSquare, sqBuf);
+                fen[pos++] = sqBuf[0];
+                fen[pos++] = sqBuf[1];
+            }else{
+                fen[pos++] = '-';
+            }
+        }else{
+            U64 pawnPos = board->enPassantSquare << 9 | board->enPassantSquare << 7;
+            if (pawnPos & getSpecificColorPieces(board, nBlack, nPawn))
+            {
+                char sqBuf[3];
+                translateSquareToAlgebraic(board->enPassantSquare, sqBuf);
+                fen[pos++] = sqBuf[0];
+                fen[pos++] = sqBuf[1];
+            }else{
+                fen[pos++] = '-';
+            }
+        }
+        
+    }
+    else
+    {
+        fen[pos++] = '-';
+    }
+
+    // 5. Halfmove clock
+    pos += sprintf(&fen[pos], " %d", board->halfmoveClock);
+
+    // 6. Fullmove number
+    pos += sprintf(&fen[pos], " %d", board->fullmoveNumber);
+
+    fen[pos] = '\0';
+}
 void printBoardDetails(Board *board)
 {
-    puts("All Pieces");
     printChessBoard(board);
 
-    printf("White to move: %d\n", board->whiteToMove);
-    printf("Castling Rights: %d\n", board->castlingRights);
-    printf("En Passant Square: %d\n", board->enPassantSquare);
-    printf("Half Move Clock: %d\n", board->halfmoveClock);
-    printf("Full Move Counter: %d\n", board->fullmoveNumber);
+    char fenBuffer[128];
+    getFEN(board, fenBuffer);
+
+    printf("Fen: %s\n", fenBuffer);
 }
 void translateSquareToAlgebraic(enumSquare square, char *buffer)
 {

@@ -346,10 +346,11 @@ void saveBoardState(Board *board, Move move)
         int capturedPawnPos = (int)to;
         capturedPawnPos += board->whiteToMove ? -8 : 8;
         board->historyArr[board->historyPly].capturedPiece = board->mailbox[capturedPawnPos];
+        assert(board->historyArr[board->historyPly].capturedPiece == nPawn && "The Piece That Was Captured During enPassant was not a pawn"); 
     }
     else
     {
-        board->historyArr[board->historyPly].capturedPiece = board->mailbox[to];
+        board->historyArr[board->historyPly].capturedPiece = board->mailbox[to]; // could be empty 
     }
     board->historyPly++;
 }
@@ -379,9 +380,9 @@ void makeMove(Board *board, Move move)
     
     if (flags == DOUBLE_PAWN_PUSH_FLAG)
     { // set ep square to behind/above the pawn
-        int capturedPawnPos = (int)to;
-        capturedPawnPos += board->whiteToMove ? -8 : 8;
-        board->enPassantSquare = capturedPawnPos;
+        int newEpPos = (int)to;
+        newEpPos += board->whiteToMove ? -8 : 8;
+        board->enPassantSquare = newEpPos;
     }
     // update half move clock
     if (piece == nPawn || isCapture(move))

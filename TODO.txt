@@ -1,4 +1,113 @@
 todo: 
 -perft:
 	-there is a bug with en passant capture:
-		- review the move code very carefully and figure out why it's it giving a different output. 
+		- review the move code very carefully and figure out why it's it giving a different output.
+		Move diffs  
+		- a2a4(-27 ) b7b5 (-27) a4b5 (-27) (CAPTURED PAWN TURN
+		S INTO X (INVALID!)) 
+			- now all moves give slightly different movecount then stockfish so will pick the top one 
+			a7a5 (FEN printing should show ep able to be taken after this move ) ( also, white can't take pawn after black double pawn push so there is a bug with the double pawn push ep setting or ep move generation)
+
+			missing moves b5a6 (ep capture ) and b5b6 (single pawn push)  
+			my guess is because it turns into and "X" instead of being a pawn so it can't do any pawn moves 
+
+stockfish: 
+position startpos moves a2a4 b7b5 a4b5 a7a5
+d
+
+ +---+---+---+---+---+---+---+---+
+ | r | n | b | q | k | b | n | r | 8
+ +---+---+---+---+---+---+---+---+
+ |   |   | p | p | p | p | p | p | 7
+ +---+---+---+---+---+---+---+---+
+ |   |   |   |   |   |   |   |   | 6
+ +---+---+---+---+---+---+---+---+
+ | p | P |   |   |   |   |   |   | 5
+ +---+---+---+---+---+---+---+---+
+ |   |   |   |   |   |   |   |   | 4
+ +---+---+---+---+---+---+---+---+
+ |   |   |   |   |   |   |   |   | 3
+ +---+---+---+---+---+---+---+---+
+ |   | P | P | P | P | P | P | P | 2
+ +---+---+---+---+---+---+---+---+
+ | R | N | B | Q | K | B | N | R | 1
+ +---+---+---+---+---+---+---+---+
+   a   b   c   d   e   f   g   h
+
+Fen: rnbqkbnr/2pppppp/8/pP6/8/8/1PPPPPPP/RNBQKBNR w KQkq a6 0 3
+Key: B9F784BC513DEF03
+Checkers:
+go perft 1
+info string Available processors: 0-15
+info string Using 1 thread
+info string NNUE evaluation using nn-1c0000000000.nnue (133MiB, (22528, 3072, 15, 32, 1))
+info string NNUE evaluation using nn-37f18f62d772.nnue (6MiB, (22528, 128, 15, 32, 1))
+b2b3: 1
+c2c3: 1
+d2d3: 1
+e2e3: 1
+f2f3: 1
+g2g3: 1
+h2h3: 1
+b5b6: 1
+b2b4: 1
+c2c4: 1
+d2d4: 1
+e2e4: 1
+f2f4: 1
+g2g4: 1
+h2h4: 1
+b5a6: 1
+b1a3: 1
+b1c3: 1
+g1f3: 1
+g1h3: 1
+a1a2: 1
+a1a3: 1
+a1a4: 1
+a1a5: 1
+
+Nodes searched: 24
+
+Me: 
+position startpos moves a2a4 b7b5 a4b5 a7a5
+d
+8| r n b q k b n r 
+7| . . p p p p p p
+6| . . . . . . . .
+5| p X . . . . . .
+4| . . . . . . . .
+3| . . . . . . . .
+2| . P P P P P P P
+1| R N B Q K B N R
+   _ _ _ _ _ _ _ _
+   a b c d e f g h
+Fen: rnbqkbnr/2pppppp/8/pX6/8/8/1PPPPPPP/RNBQKBNR w KQkq - 0 3
+go perft 1
+Running perft depth 1...
+b2b3: 1
+b2b4: 1
+c2c3: 1
+c2c4: 1
+d2d3: 1
+d2d4: 1
+e2e3: 1
+e2e4: 1
+f2f3: 1
+f2f4: 1
+g2g3: 1
+g2g4: 1
+h2h3: 1
+h2h4: 1
+b1a3: 1
+b1c3: 1
+g1f3: 1
+g1h3: 1
+a1a2: 1
+a1a3: 1
+a1a4: 1
+a1a5: 1
+
+Total nodes at depth 1: 22
+
+Nodes: 22
