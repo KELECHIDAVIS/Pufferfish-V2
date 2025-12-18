@@ -8,6 +8,7 @@
 #include "moves.h"
 #include "attack_patterns.h"
 #include "perft.h"
+#include <time.h> 
 
 #define INPUT_BUFFER 4096
 
@@ -143,9 +144,14 @@ void parseGo(Board *board, char *line)
         {
             depth = atoi(ptr + 6);
         }
-        printf("Running perft depth %d...\n", depth);
-
-        divide(board, depth);
+        
+        clock_t t ; 
+        t= clock(); 
+        U64 nodes = divide (board, depth);
+        t = clock() -t; 
+        double seconds = ((double) t )/ CLOCKS_PER_SEC; 
+        U64 nodesPerSecond = (U64) (nodes / seconds )   ;
+        printf("Nodes Per Second: %llu\n", nodesPerSecond); 
     }
     else
     {
