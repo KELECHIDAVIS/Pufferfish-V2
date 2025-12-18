@@ -232,9 +232,18 @@ void movePiece(Board *board, unsigned int from, unsigned int to, MoveFlag flags)
     // has to be valid piece
     assert(piece >= nPawn && piece <= nKing && "The piece could not be found in any bb");
     // move from piece bb
+    // TODO: Remove ALL DEBUG PRINT STATEMENTS : 
+    puts("Pieces Board Before Manipulation"); 
+    printBB(board->pieces[piece ]); 
     board->pieces[piece] ^= fromBit; // guarenteed to be set so just xor it
+    
+    puts("Pieces Board Turning of from bit");
+    printBB(board->pieces[piece]);
     board->pieces[piece] |= toBit;   // might be set or not if it's a capture of the same pc
-
+    
+    puts("Pieces Board Turning on to bit");
+    printBB(board->pieces[piece]);
+    
     // move from side bb
     board->pieces[side] ^= (fromBit | toBit); // both guarenteed to be set and unset
     // update moving piece in mailbox
@@ -368,9 +377,11 @@ void makeMove(Board *board, Move move)
     unsigned int from = getFrom(move);
     unsigned int to = getTo(move);
     unsigned int flags = getFlags(move);
+
     enumPiece piece = board->mailbox[from];
 
     // save the state for this move
+    printChessBoard(board); 
     saveBoardState(board, move);
     if (piece == nRook || piece == nKing)
         updateCastlingRights(board, piece, from);

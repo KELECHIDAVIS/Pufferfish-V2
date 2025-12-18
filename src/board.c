@@ -95,22 +95,21 @@ void getFEN(Board *board, char *fen)
             U64 bit = 1ULL << square;
 
             // Check if there's a piece here
-            enumPiece pieceType = nWhite; // Default/Empty in your mailbox logic
-            U64 allPieces = board->pieces[nWhite] | board->pieces[nBlack];
+            U64 allPieces = getAllPieces(board);
 
             if (bit & allPieces)
             {
                 // If we found a piece, first write any accumulated empty squares
                 if (emptySquares > 0)
                 {
-                    fen[pos++] = emptySquares + '0';
+                    fen[pos++] = (char)emptySquares + '0';
                     emptySquares = 0;
                 }
 
                 // Determine piece type and color
                 char c = 'x';
                 char possible[] = {'p', 'n', 'b', 'r', 'q', 'k'};
-                for (int i = 2; i < 8; i++)
+                for (int i = nPawn; i <=nKing; i++)
                 {
                     if (bit & board->pieces[i])
                     {
@@ -119,7 +118,7 @@ void getFEN(Board *board, char *fen)
                     }
                 }
                 if (bit & board->pieces[nWhite])
-                    c = toupper(c);
+                    c = (char) toupper(c);
                 fen[pos++] = c;
             }
             else
@@ -128,7 +127,7 @@ void getFEN(Board *board, char *fen)
             }
         }
         if (emptySquares > 0)
-            fen[pos++] = emptySquares + '0';
+            fen[pos++] = (char) emptySquares + '0';
         if (rank > 0)
             fen[pos++] = '/';
     }
