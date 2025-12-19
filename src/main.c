@@ -8,7 +8,7 @@
 #include "moves.h"
 #include "attack_patterns.h"
 #include "perft.h"
-#include <time.h> 
+#include <time.h>
 
 #define INPUT_BUFFER 4096
 
@@ -144,14 +144,14 @@ void parseGo(Board *board, char *line)
         {
             depth = atoi(ptr + 6);
         }
-        
-        clock_t t ; 
-        t= clock(); 
-        U64 nodes = divide (board, depth);
-        t = clock() -t; 
-        double seconds = ((double) t )/ CLOCKS_PER_SEC; 
-        U64 nodesPerSecond = (U64) ((double)nodes / seconds )   ;
-        printf("Nodes Per Second: %llu\n", nodesPerSecond); 
+
+        clock_t t;
+        t = clock();
+        U64 nodes = divide(board, depth);
+        t = clock() - t;
+        double seconds = ((double)t) / CLOCKS_PER_SEC;
+        U64 nodesPerSecond = (U64)((double)nodes / seconds);
+        printf("Nodes Per Second: %llu\n", nodesPerSecond);
     }
     else
     {
@@ -189,50 +189,117 @@ void parseGo(Board *board, char *line)
 
 int main()
 {
-    char line[INPUT_BUFFER];
+    // char line[INPUT_BUFFER];
+    // Board board;
+
+    // // 1. Important: Disable buffering
+    // setbuf(stdin, NULL);
+    // setbuf(stdout, NULL);
+
+    // initStandardChess(&board);
+    // precomputeAllAttacks();
+
+    // // 2. UCI Loop
+    // while (fgets(line, INPUT_BUFFER, stdin))
+    // {
+    //     // Strip newline
+    //     line[strcspn(line, "\n")] = 0;
+
+    //     if (strcmp(line, "uci") == 0)
+    //     {
+    //         printf("id name Pufferfish\n");
+    //         printf("id author Kelechi Duru \n");
+    //         printf("uciok\n");
+    //     }
+    //     else if (strcmp(line, "isready") == 0)
+    //     {
+    //         printf("readyok\n");
+    //     }
+    //     else if (strncmp(line, "position", 8) == 0)
+    //     {
+    //         parsePosition(&board, line);
+    //     }
+    //     else if (strncmp(line, "go", 2) == 0)
+    //     {
+    //         parseGo(&board, line);
+    //     }
+    //     else if (strcmp(line, "quit") == 0)
+    //     {
+    //         break;
+    //     }
+    //     else if (strcmp(line, "d") == 0)
+    //     {
+    //         printBoardDetails(&board);
+    //     }
+    // }
+
+    // testing the kiwipete depth 6 bug
     Board board;
-
-    // 1. Important: Disable buffering
-    setbuf(stdin, NULL);
-    setbuf(stdout, NULL);
-
-    initStandardChess(&board);
+    initBoard(&board, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     precomputeAllAttacks();
 
-    // 2. UCI Loop
-    while (fgets(line, INPUT_BUFFER, stdin))
-    {
-        // Strip newline
-        line[strcspn(line, "\n")] = 0;
+    puts("Initial Kiwipete: ");
+    printChessBoard(&board);
 
-        if (strcmp(line, "uci") == 0)
-        {
-            printf("id name Pufferfish\n");
-            printf("id author Kelechi Duru \n");
-            printf("uciok\n");
-        }
-        else if (strcmp(line, "isready") == 0)
-        {
-            printf("readyok\n");
-        }
-        else if (strncmp(line, "position", 8) == 0)
-        {
-            parsePosition(&board, line);
-        }
-        else if (strncmp(line, "go", 2) == 0)
-        {
-            parseGo(&board, line);
-        }
-        else if (strcmp(line, "quit") == 0)
-        {
-            break;
-        }
-        else if (strcmp(line, "d") == 0)
-        {
-            printBoardDetails(&board);
-        }
+    board.historyArr[0] = (MoveHistory){
+        .move = 528,
+        .castlingRights = 15,
+        .enPassantSquare = a1,
+        .halfmoveClock = 0,
+        .fullMoveNumber = 1,
+        .capturedPiece = nWhite};
+
+    board.historyArr[1] = (MoveHistory){
+        .move = 17870,
+        .castlingRights = 15,
+        .enPassantSquare = NO_SQUARE,
+        .halfmoveClock = 0,
+        .fullMoveNumber = 1,
+        .capturedPiece = nPawn};
+
+    board.historyArr[2] = (MoveHistory){
+        .move = 593,
+        .castlingRights = 15,
+        .enPassantSquare = NO_SQUARE,
+        .halfmoveClock = 0,
+        .fullMoveNumber = 2,
+        .capturedPiece = nWhite};
+
+    board.historyArr[3] = (MoveHistory){
+        .move = 7330,
+        .castlingRights = 15,
+        .enPassantSquare = NO_SQUARE,
+        .halfmoveClock = 0,
+        .fullMoveNumber = 2,
+        .capturedPiece = nWhite};
+
+    board.historyArr[4] = (MoveHistory){ // PROBLEM OCCURS HERE 
+        .move = 22762,
+        .castlingRights = 15,
+        .enPassantSquare = c6,
+        .halfmoveClock = 0,
+        .fullMoveNumber = 3,
+        .capturedPiece = nPawn};
+
+    board.historyPly = 5; 
+
+    // for each, move and board state to view at each step 
+    for (int i = 0; i< board.historyPly; i++    ) {
+        puts("Current Board State: ");  
+        printBoardDetails(&board); 
+        
+        Move move = board.historyArr[i].move ; 
+        unsigned int from = getFrom(move); 
+        unsigned int to = getTo(move); 
+        unsigned int flags = getFlags (move);
+        char fromBuff[3]; 
+        char toBuff[3];
+        char flagBuff[12]; 
+        translateSquareToAlgebraic(from, fromBuff);
+        translateSquareToAlgebraic(to,toBuff);
+        translateFlagToAlgebraic(flags, flagBuff); 
+        printf("Move to make: %s%s %s \n", fromBuff, toBuff, flagBuff); 
+        makeMove(&board, move); 
     }
-
-    
     return 0;
 }

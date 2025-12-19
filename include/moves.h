@@ -12,6 +12,7 @@
 // bits 0-5: destination square (0-63)
 // bits 6-11: source square (0-63)
 // bits 12-15: move flags : the kind of move in table : https://www.chessprogramming.org/Encoding_Moves
+
 typedef enum
 {
     QUIET_MOVE_FLAG = 0,

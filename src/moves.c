@@ -187,6 +187,58 @@ void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
     }
 }
 
+void translateFlagToAlgebraic(MoveFlag flag, char *buffer)
+{
+    switch (flag)
+    {
+    case QUIET_MOVE_FLAG:
+        strcpy(buffer, "quiet");
+        break;
+    case DOUBLE_PAWN_PUSH_FLAG:
+        strcpy(buffer, "double pawn");
+        break;
+    case KING_CASTLE_FLAG:
+        strcpy(buffer, "O-O");
+        break;
+    case QUEEN_CASTLE_FLAG:
+        strcpy(buffer, "O-O-O");
+        break;
+    case CAPTURE_FLAG:
+        strcpy(buffer, "capture");
+        break;
+    case EN_PASSANT_CAPTURE_FLAG:
+        strcpy(buffer, "e.p.");
+        break;
+    case KNIGHT_PROMOTION_FLAG:
+        strcpy(buffer, "=N");
+        break;
+    case BISHOP_PROMOTION_FLAG:
+        strcpy(buffer, "=B");
+        break;
+    case ROOK_PROMOTION_FLAG:
+        strcpy(buffer, "=R");
+        break;
+    case QUEEN_PROMOTION_FLAG:
+        strcpy(buffer, "=Q");
+        break;
+    case KNIGHT_PROMO_CAPTURE_FLAG:
+        strcpy(buffer, "x=N");
+        break;
+    case BISHOP_PROMO_CAPTURE_FLAG:
+        strcpy(buffer, "x=B");
+        break;
+    case ROOK_PROMO_CAPTURE_FLAG:
+        strcpy(buffer, "x=R");
+        break;
+    case QUEEN_PROMO_CAPTURE_FLAG:
+        strcpy(buffer, "x=Q");
+        break;
+    default:
+        strcpy(buffer, "unknown");
+        break;
+    }
+}
+
 // if move is a rook move update if king move disable castling for side
 static void updateCastlingRights(Board *board, enumPiece piece, unsigned int from)
 {

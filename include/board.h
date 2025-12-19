@@ -169,6 +169,5 @@ extern void printBB(U64 bb);
 extern void printChessBoard(Board *board);
 extern void printBoardDetails(Board *board);
 extern void translateSquareToAlgebraic(enumSquare square, char *buffer);
-// static inline bool isOppInCheck(const Board *board);
-// static bool isSideToMoveInCheck(const Board *board);
+
 #endif // BOARD_H
