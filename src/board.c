@@ -374,8 +374,8 @@ char *readHalfMoveClockFromFen(Board *board, char *fen)
 
     if (!isdigit(c))
     {
-        puts("Error. Have to enter a digit for halfmove clock");
-        abort();
+        board->halfmoveClock = 0; 
+        return ""; 
     }
 
     board->halfmoveClock = (unsigned short)atoi(fen); // get the first number string
@@ -395,8 +395,8 @@ void readFullMoveClockFromFen(Board *board, char *fen)
 
     if (!isdigit(c))
     {
-        puts("Error. Have to enter a digit for fullmove number");
-        abort();
+        board->fullmoveNumber = 1; 
+        return ; 
     }
 
     board->fullmoveNumber = (unsigned short)atoi(fen); // get first number string

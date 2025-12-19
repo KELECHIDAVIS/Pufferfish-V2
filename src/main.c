@@ -150,7 +150,7 @@ void parseGo(Board *board, char *line)
         U64 nodes = divide (board, depth);
         t = clock() -t; 
         double seconds = ((double) t )/ CLOCKS_PER_SEC; 
-        U64 nodesPerSecond = (U64) (nodes / seconds )   ;
+        U64 nodesPerSecond = (U64) ((double)nodes / seconds )   ;
         printf("Nodes Per Second: %llu\n", nodesPerSecond); 
     }
     else

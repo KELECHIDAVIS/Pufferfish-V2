@@ -1,3 +1,4 @@
 todo: 
 -perft:
-	bot gets the standard fen position and position 3 on the perft results page, will test the rest of the positions later. 
+	- when doing go perft 6 on kiwi pete, the program crashes before printing out any moves, probably first move at that depth causes crash within enpassant saveBoardState 
+	

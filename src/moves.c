@@ -111,7 +111,7 @@ void getQueenMoves(const Board *board, Move *moveList, size_t *numMoves)
         extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces, fromSquare, CAPTURE_FLAG);
     }
 }
-// TODO: add castling for kings moves
+
 void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
     enumPiece side = board->whiteToMove ? nWhite : nBlack;
@@ -154,10 +154,12 @@ void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
                     // inbetween cannot be in attack pattern and has to be empty 
                     if((!(inBetween & oppAttackPattern) ) && ((inBetween & empty) == inBetween)) 
                         extractMovesFromBB(moveList, numMoves, destination , fromSquare, KING_CASTLE_FLAG); 
-                }else if (board->castlingRights & W_Q_CASTLE){
+                }
+                if (board->castlingRights & W_Q_CASTLE){
                     destination = (1ULL << c1);
-                    inBetween = (1ULL << b1) | (1ULL << d1 )| destination;
-                    if ((!(inBetween & oppAttackPattern)) && ((inBetween & empty) == inBetween)) 
+                    inBetween =  (1ULL << d1 )| destination;
+                    U64 pathIsEmpty = inBetween | (1ULL << b1); 
+                    if ((!(inBetween & oppAttackPattern)) && ((pathIsEmpty & empty) == pathIsEmpty)) 
                         extractMovesFromBB(moveList, numMoves, destination, fromSquare, QUEEN_CASTLE_FLAG); 
                 }
             }
@@ -172,11 +174,12 @@ void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
                     if ((!(inBetween & oppAttackPattern)) && ((inBetween & empty) == inBetween))
                         extractMovesFromBB(moveList, numMoves, destination, fromSquare, KING_CASTLE_FLAG);
                 }
-                else if (board->castlingRights & W_Q_CASTLE)
+                if (board->castlingRights & B_Q_CASTLE)
                 {
                     destination = (1ULL << c8);
-                    inBetween = (1ULL << b8) | (1ULL << d8) | destination;
-                    if ((!(inBetween & oppAttackPattern)) && ((inBetween & empty) == inBetween))
+                    inBetween = (1ULL << d8) | destination;
+                    U64 pathIsEmpty = inBetween | (1ULL << b8);
+                    if ((!(inBetween & oppAttackPattern)) && ((pathIsEmpty & empty) == pathIsEmpty))
                         extractMovesFromBB(moveList, numMoves, destination, fromSquare, QUEEN_CASTLE_FLAG);
                 }
             }
