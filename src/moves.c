@@ -284,6 +284,8 @@ void movePiece(Board *board, unsigned int from, unsigned int to, MoveFlag flags)
     // use mailbox to see which piece was at that spot
     enumPiece piece = board->mailbox[from];
     enumPiece capturedPiece = board->mailbox[to];
+
+    
     // has to be valid piece
     assert(piece >= nPawn && piece <= nKing && "The piece could not be found in any bb");
     // move from piece bb

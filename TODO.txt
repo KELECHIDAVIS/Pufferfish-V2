@@ -83,3 +83,8 @@ Move to make: a2a3 quiet
 
 after it's black's turn and their move to make is a2a3 for some reason? 
 maybe will print out the bb's to make sure everyting is being represented correctly 
+
+since it's now tripping up when the piece pulled from mailbox in movePiece is empty, could just have it check all side bb's to see which type of piece is in there **** 
+
+** the board is probably getting corrupted during make and unmake 
+	am going to validate that the make and unmake cycle doesn't corrupt the board in anyway. (claude function )
