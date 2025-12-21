@@ -166,7 +166,7 @@ extern void initBoard(Board *board, char *fen);
 extern void initStandardChess(Board* board); 
 extern void addPiece(Board *board, enumPiece color, enumPiece pieceType, enumSquare square);
 extern void printBB(U64 bb);
-extern void printChessBoard(Board *board);
+extern void printChessBoard(const Board *board);
 extern void printBoardDetails(Board *board);
 extern void translateSquareToAlgebraic(enumSquare square, char *buffer);
 

@@ -39,7 +39,7 @@ void printBB(U64 bb)
     printf("   a b c d e f g h \n");
 }
 // prints corresponding characters at each spot
-void printChessBoard(Board *board)
+void printChessBoard(const Board *board)
 {
     char possible[] = {'p', 'n', 'b', 'r', 'q', 'k'};
     U64 empty = ~getAllPieces(board);

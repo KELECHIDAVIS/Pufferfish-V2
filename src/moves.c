@@ -13,6 +13,74 @@ static void extractMovesFromBB(Move *moveList, size_t *numMoves, U64 possibleMov
         moveList[(*numMoves)++] = move;
     }
 }
+void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+
+    getPawnMoves(board, moveList, numMoves);
+    getKnightMoves(board, moveList, numMoves);
+    getBishopMoves(board, moveList, numMoves);
+    getRookMoves(board, moveList, numMoves);
+    getQueenMoves(board, moveList, numMoves);
+    getKingMoves(board, moveList, numMoves);
+}
+
+void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
+{
+    enumPiece side = board->whiteToMove ? nWhite : nBlack;
+    U64 pawns = getSpecificColorPieces(board, side, nPawn);
+
+    while (pawns)
+    {
+        U64 pos = LSBIT(pawns);
+        pawns = CLEARLSBIT(pawns);
+        enumSquare fromSquare = __builtin_ctzll(pos);
+
+        U64 emptySquares = ~getAllPieces(board);
+        U64 removeLastRank = side == nWhite ? ~RANK_8 : ~RANK_1; // promotions handled separately
+
+        U64 singlePushPattern = getSinglePushPattern(emptySquares, pos, side);
+        extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank, fromSquare, QUIET_MOVE_FLAG);
+
+        // only if single push is possible
+        if (singlePushPattern)
+        {
+            U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
+            extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
+        }
+
+        // get pawn attacks
+        U64 attackPattern = getPawnAttackPattern(fromSquare, side);
+
+        // and with opponent pieces to get captures, also remove last rank for promotions
+        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
+        U64 opponentPieces = getColorPieces(board, opponentSide);
+        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces & removeLastRank, fromSquare, CAPTURE_FLAG);
+
+        // for promotions can just get every single push or capture that lands on last rank
+        U64 promotionPushes = singlePushPattern & ~removeLastRank;
+        for (int i = KNIGHT_PROMOTION_FLAG; i <= QUEEN_PROMOTION_FLAG; i++)
+        {
+            U64 copy = promotionPushes;
+            extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
+        }
+
+        U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
+        for (int i = KNIGHT_PROMO_CAPTURE_FLAG; i <= QUEEN_PROMO_CAPTURE_FLAG; i++)
+        {
+            U64 copy = promotionCaptures;
+            extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
+        }
+
+        // check enpassant if nonzero
+        if (board->enPassantSquare)
+        {
+            U64 enPassantBit = 1ULL << board->enPassantSquare;
+            // if they can get to the enpassant square by capturing it's valid
+            U64 enPassantCaptures = attackPattern & enPassantBit;
+            extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
+        }
+    }
+}
 void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
 {
     enumPiece side = board->whiteToMove ? nWhite : nBlack;
@@ -23,6 +91,8 @@ void getKnightMoves(const Board *board, Move *moveList, size_t *numMoves)
         U64 pos = LSBIT(knights);
         knights = CLEARLSBIT(knights);
         enumSquare fromSquare = __builtin_ctzll(pos);
+
+        if (fromSquare >h8 || fromSquare < a1) continue ; 
 
         U64 attackPattern = getKnightAttackPattern(fromSquare);
 
@@ -46,6 +116,7 @@ void getBishopMoves(const Board *board, Move *moveList, size_t *numMoves)
         U64 pos = LSBIT(bishops);
         bishops = CLEARLSBIT(bishops);
         enumSquare fromSquare = __builtin_ctzll(pos);
+        
 
         U64 blockers = getAllPieces(board) & BishopMagicTable[fromSquare].mask;
         U64 attackPattern = getBishopAttackPattern(fromSquare, blockers);
@@ -70,6 +141,7 @@ void getRookMoves(const Board *board, Move *moveList, size_t *numMoves)
         U64 pos = LSBIT(rooks);
         rooks = CLEARLSBIT(rooks);
         enumSquare fromSquare = __builtin_ctzll(pos);
+        
 
         U64 blockers = getAllPieces(board) & RookMagicTable[fromSquare].mask;
         U64 attackPattern = getRookAttackPattern(fromSquare, blockers);
@@ -94,6 +166,7 @@ void getQueenMoves(const Board *board, Move *moveList, size_t *numMoves)
         U64 pos = LSBIT(queen);
         queen = CLEARLSBIT(queen);
         enumSquare fromSquare = __builtin_ctzll(pos);
+        
 
         U64 bishopBlockers = getAllPieces(board) & BishopMagicTable[fromSquare].mask;
         U64 rookBlockers = getAllPieces(board) & RookMagicTable[fromSquare].mask;
@@ -122,7 +195,7 @@ void getKingMoves(const Board *board, Move *moveList, size_t *numMoves)
         U64 pos = LSBIT(kings);
         kings = CLEARLSBIT(kings);
         enumSquare fromSquare = __builtin_ctzll(pos);
-
+        
         U64 attackPattern = getKingAttackPattern(fromSquare);
 
         // and with empty to get quiet moves
@@ -247,7 +320,7 @@ static void updateCastlingRights(Board *board, enumPiece piece, unsigned int fro
     {
         board->castlingRights &= board->whiteToMove ? (unsigned char)(~(W_K_CASTLE | W_Q_CASTLE)) : (unsigned char)(~(B_K_CASTLE | B_Q_CASTLE));
     }
-    else
+    else if(piece== nRook)
     { // rook
         switch (from)
         { // based on which corner move originates from
@@ -287,7 +360,22 @@ void movePiece(Board *board, unsigned int from, unsigned int to, MoveFlag flags)
 
     
     // has to be valid piece
-    assert(piece >= nPawn && piece <= nKing && "The piece could not be found in any bb");
+    if (!(piece >= nPawn && piece <= nKing))
+    {
+        printf("Error: Invalid piece at from=%d\n", from);
+        printf("Moves to get to this position:\n");
+        for (int i = 0; i < board->historyPly; i++)
+        {
+            printf("Move %d: ", i);
+            printMove(board->historyArr[i].move);
+            printf("\n");
+        }// last one printed is the current move being played 
+        puts("Current Board: "); 
+        printChessBoard(board);
+        puts("rook bb: "); 
+        printBB(board->pieces[nRook]); 
+        assert(false && "The piece could not be found in any bb");
+    }
     // move from piece bb
     
     board->pieces[piece] ^= fromBit; // guarenteed to be set so just xor it
@@ -571,6 +659,20 @@ void unmakeMove(Board *board, Move move)
     board->enPassantSquare = lastState->enPassantSquare;
     board->halfmoveClock = lastState->halfmoveClock;
     board->fullmoveNumber = lastState->fullMoveNumber;
+
+    // Add validation
+    #ifdef DEBUG
+        for (int sq = 0; sq < 64; sq++)
+        {
+            enumPiece piece = board->mailbox[sq];
+            if (piece != nWhite)
+            {
+                // Check piece is in correct bitboard
+                U64 sqBit = 1ULL << sq;
+                assert(board->pieces[piece] & sqBit);
+            }
+        }
+    #endif
 }
 void getSquareName(unsigned int sq, char *buf)
 {
@@ -619,70 +721,4 @@ void printMove(Move move)
         break;
     }
 }
-void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves)
-{
 
-    getPawnMoves(board, moveList, numMoves);
-    getKnightMoves(board, moveList, numMoves);
-    getBishopMoves(board, moveList, numMoves);
-    getRookMoves(board, moveList, numMoves);
-    getQueenMoves(board, moveList, numMoves);
-    getKingMoves(board, moveList, numMoves);
-}
-
-void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves)
-{
-    enumPiece side = board->whiteToMove ? nWhite : nBlack;
-    U64 pawns = getSpecificColorPieces(board, side, nPawn);
-
-    while (pawns)
-    {
-        U64 pos = LSBIT(pawns);
-        pawns = CLEARLSBIT(pawns);
-        enumSquare fromSquare = __builtin_ctzll(pos);
-        U64 emptySquares = ~getAllPieces(board);
-        U64 removeLastRank = side == nWhite ? ~RANK_8 : ~RANK_1; // promotions handled separately
-
-        U64 singlePushPattern = getSinglePushPattern(emptySquares, pos, side);
-        extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank, fromSquare, QUIET_MOVE_FLAG);
-
-        // only if single push is possible
-        if (singlePushPattern)
-        {
-            U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
-            extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
-        }
-
-        // get pawn attacks
-        U64 attackPattern = getPawnAttackPattern(fromSquare, side);
-
-        // and with opponent pieces to get captures, also remove last rank for promotions
-        enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
-        U64 opponentPieces = getColorPieces(board, opponentSide);
-        extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces & removeLastRank, fromSquare, CAPTURE_FLAG);
-
-        // for promotions can just get every single push or capture that lands on last rank
-        U64 promotionPushes = singlePushPattern & ~removeLastRank;
-        for (int i = KNIGHT_PROMOTION_FLAG; i <= QUEEN_PROMOTION_FLAG; i++)
-        {
-            U64 copy = promotionPushes;
-            extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
-        }
-
-        U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
-        for (int i = KNIGHT_PROMO_CAPTURE_FLAG; i <= QUEEN_PROMO_CAPTURE_FLAG; i++)
-        {
-            U64 copy = promotionCaptures;
-            extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
-        }
-
-        // check enpassant if nonzero
-        if (board->enPassantSquare)
-        {
-            U64 enPassantBit = 1ULL << board->enPassantSquare;
-            // if they can get to the enpassant square by capturing it's valid
-            U64 enPassantCaptures = attackPattern & enPassantBit;
-            extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
-        }
-    }
-}
