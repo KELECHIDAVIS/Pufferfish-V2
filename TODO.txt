@@ -2,3 +2,28 @@ todo:
 -perft: 
 	to make the make and umake move functions simpler i am going to redo them from scratch to make sure that everything is taken care of cleanly.
 	** if still having trouble after this, check out movegeneration, might be generating illegal moves 
+
+
+-tests
+	two moves from the starting position are not correct: 
+	go perft 1
+a2b3: 1
+b2a3: 1
+b2c3: 1
+c2b3: 1
+c2d3: 1
+d2c3: 1
+d2e3: 1
+e2d3: 1
+e2f3: 1
+f2e3: 1
+f2g3: 1
+g2f3: 1
+g2h3: 1
+h2g3: 1
+b1a3: 1
+b1c3: 1
+g1f3: 1
+g1h3: 1
+
+Nodes searched: 18
