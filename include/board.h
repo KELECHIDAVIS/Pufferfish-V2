@@ -127,7 +127,6 @@ typedef struct
   unsigned short halfmoveClock;
   unsigned short fullMoveNumber;
   enumPiece capturedPiece;
-  bool whiteToMove; 
 } MoveHistory;
 
 typedef struct
@@ -162,9 +161,23 @@ static inline U64 getSpecificColorPieces(const Board *board, enumPiece color, en
 {
   return board->pieces[color] & board->pieces[pieceType];
 }
-static inline isValidPiece(enumPiece piece)
+static inline bool isValidPiece(enumPiece piece)
 {
   return (piece >= nPawn && piece <= nKing);
+}
+static inline void removePiece(Board *board, enumPiece piece, enumPiece side,
+                        unsigned int pos) {
+    U64 posBit = 1ULL << pos;
+    board->pieces[piece] &= ~posBit;
+    board->pieces[side] &= ~posBit;
+    board->mailbox[pos] = nWhite; // empty
+}
+static inline void putPiece(Board *board, enumPiece piece, enumPiece side,
+                     unsigned int dest) {
+    U64 destBit = 1ULL << dest;
+    board->pieces[piece] |= destBit;
+    board->pieces[side] |= destBit;
+    board->mailbox[dest] = piece;
 }
 extern void initBoard(Board *board, char *fen);
 extern void initStandardChess(Board *board);
