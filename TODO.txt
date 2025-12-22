@@ -1,6 +1,3 @@
 todo: 
 -perft: 
-
-Comb through everything move related to make sure each piece movement is going the way it should 
-	**create an inline function when a piece to be moved from place to place 
-	*use ands instead of xors since they might be weird in some cases. 
+	to make the make and umake move functions simpler i am going to redo them from scratch to make sure that everything is taken care of cleanly.
