@@ -79,7 +79,7 @@ INSTANTIATE_TEST_SUITE_P(
         PerftTestParams{"Kiwipete_D3", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 3, 97862},
         PerftTestParams{"Kiwipete_D4", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 4, 4085603},
         PerftTestParams{"Kiwipete_D5", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 5, 193690690},
-        /*TODO:  THIS ONE GIVES ERROR MAY COME BACK TO IT LATER (might not be neccessary to move on )  */
+        // KIWIPETE 6 works now !!! 
         // PerftTestParams{"Kiwipete_D6", "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", 6, 8031647685ULL},
 
         /* Next few positions are from : https://www.chessprogramming.org/Perft_Results */
