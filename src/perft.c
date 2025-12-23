@@ -81,7 +81,10 @@ U64 divide(Board *board, int depth)
         printf("\nNodes searched: 1\n");
         return 1ULL;
     }
+    
     getPseudoLegalMoves(board, move_list, &numMoves);
+
+    
     enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
 
     for (size_t i = 0; i < numMoves; i++)

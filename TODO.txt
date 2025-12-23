@@ -27,3 +27,5 @@ g1f3: 1
 g1h3: 1
 
 Nodes searched: 18
+
+**for some reason, the moves that are being generated in a depth of 2 is the pawn attacks? 
