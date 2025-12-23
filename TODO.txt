@@ -2,11 +2,41 @@ todo:
 -perft: 
 	to make the make and umake move functions simpler i am going to redo them from scratch to make sure that everything is taken care of cleanly.
 	** if still having trouble after this, check out movegeneration, might be generating illegal moves 
+	** also make sure the board initialization is working properly, print out all the piece bitboard and mailbox to make sure everyting is gucci. 
+	** also 
 
+**for some reason, the moves that are being generated in a depth of 2 is the pawn attacks? 
 
--tests
-	two moves from the starting position are not correct: 
-	go perft 1
+Board unmake may have a bug in it that doesn't reset the board fully, caliing go perft 1 twice in a row results in different answers ** bad 
+Since this is occuring at very low depth this prolly is because unmakeMove isn't setting back state properly:
+
+Initializing magic bitboard lookup tables...
+Magic bitboard initialization complete!
+go perft 1
+a2a3: 1
+a2a4: 1
+b2b3: 1
+b2b4: 1
+c2c3: 1
+c2c4: 1
+d2d3: 1
+d2d4: 1
+e2e3: 1
+e2e4: 1
+f2f3: 1
+f2f4: 1
+g2g3: 1
+g2g4: 1
+h2h3: 1
+h2h4: 1
+b1a3: 1
+b1c3: 1
+g1f3: 1
+g1h3: 1
+
+Nodes searched: 20
+Nodes Per Second: 4000
+go perft 1
 a2b3: 1
 b2a3: 1
 b2c3: 1
@@ -25,7 +55,58 @@ b1a3: 1
 b1c3: 1
 g1f3: 1
 g1h3: 1
-
 Nodes searched: 18
 
-**for some reason, the moves that are being generated in a depth of 2 is the pawn attacks? 
+
+**FOUND THE BUG: 
+- Using nWhite to represent empty squares causes X's to be left when removed, will investigate this phenomenon further 
+Initializing magic bitboard lookup tables...
+Magic bitboard initialization complete!
+d
+8| r n b q k b n r 
+7| p p p p p p p p
+6| . . . . . . . .
+5| . . . . . . . .
+4| . . . . . . . .
+3| . . . . . . . .
+2| P P P P P P P P
+1| R N B Q K B N R
+   _ _ _ _ _ _ _ _
+   a b c d e f g h
+Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+go perft 1
+a2a3: 1
+a2a4: 1
+b2b3: 1
+b2b4: 1
+c2c3: 1
+c2c4: 1
+d2d3: 1
+d2d4: 1
+e2e3: 1
+e2e4: 1
+f2f3: 1
+f2f4: 1
+g2g3: 1
+g2g4: 1
+h2h3: 1
+h2h4: 1
+b1a3: 1
+b1c3: 1
+g1f3: 1
+g1h3: 1
+
+Nodes searched: 20
+Nodes Per Second: 10000
+d
+8| r n b q k b n r 
+7| p p p p p p p p
+6| . . . . . . . .
+5| . . . . . . . .
+4| X X X X X X X X
+3| X X X X X X X X
+2| P P P P P P P P
+1| R N B Q K B N R
+   _ _ _ _ _ _ _ _
+   a b c d e f g h
+Fen: rnbqkbnr/pppppppp/8/8/XXXXXXXX/XXXXXXXX/PPPPPPPP/RNBQKBNR w KQkq - 0 1

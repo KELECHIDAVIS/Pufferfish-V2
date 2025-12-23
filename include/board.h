@@ -1,14 +1,13 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
-#include <string.h>
-#include <stdint.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // castling rights
 #define W_K_CASTLE 0b1000
@@ -35,85 +34,83 @@ typedef unsigned long long U64;
 #define LSBIT(X) ((X) & (-(X)))
 #define CLEARLSBIT(X) ((X) & ((X) - 1))
 
-typedef enum
-{
-  a1,
-  b1,
-  c1,
-  d1,
-  e1,
-  f1,
-  g1,
-  h1,
-  a2,
-  b2,
-  c2,
-  d2,
-  e2,
-  f2,
-  g2,
-  h2,
-  a3,
-  b3,
-  c3,
-  d3,
-  e3,
-  f3,
-  g3,
-  h3,
-  a4,
-  b4,
-  c4,
-  d4,
-  e4,
-  f4,
-  g4,
-  h4,
-  a5,
-  b5,
-  c5,
-  d5,
-  e5,
-  f5,
-  g5,
-  h5,
-  a6,
-  b6,
-  c6,
-  d6,
-  e6,
-  f6,
-  g6,
-  h6,
-  a7,
-  b7,
-  c7,
-  d7,
-  e7,
-  f7,
-  g7,
-  h7,
-  a8,
-  b8,
-  c8,
-  d8,
-  e8,
-  f8,
-  g8,
-  h8,
-  NO_SQUARE = 64
+typedef enum {
+    a1,
+    b1,
+    c1,
+    d1,
+    e1,
+    f1,
+    g1,
+    h1,
+    a2,
+    b2,
+    c2,
+    d2,
+    e2,
+    f2,
+    g2,
+    h2,
+    a3,
+    b3,
+    c3,
+    d3,
+    e3,
+    f3,
+    g3,
+    h3,
+    a4,
+    b4,
+    c4,
+    d4,
+    e4,
+    f4,
+    g4,
+    h4,
+    a5,
+    b5,
+    c5,
+    d5,
+    e5,
+    f5,
+    g5,
+    h5,
+    a6,
+    b6,
+    c6,
+    d6,
+    e6,
+    f6,
+    g6,
+    h6,
+    a7,
+    b7,
+    c7,
+    d7,
+    e7,
+    f7,
+    g7,
+    h7,
+    a8,
+    b8,
+    c8,
+    d8,
+    e8,
+    f8,
+    g8,
+    h8,
+    NO_SQUARE = 64
 } enumSquare;
-typedef enum
-{
-  nWhite = 0, // any white piece
-  nBlack,     // any black piece
-  nPawn,
-  nKnight,
-  nBishop,
-  nRook,
-  nQueen,
-  nKing,
-  nSize, // amount of enums
+typedef enum {
+    nWhite = 0, // any white piece
+    nBlack,     // any black piece
+    nPawn,
+    nKnight,
+    nBishop,
+    nRook,
+    nQueen,
+    nKing,
+    nSize, // amount of enums
 } enumPiece;
 
 // forward declaring Move,  which is defined in move.h
@@ -121,59 +118,54 @@ typedef uint16_t Move;
 
 typedef struct
 {
-  Move move;
-  unsigned char castlingRights;
-  enumSquare enPassantSquare;
-  unsigned short halfmoveClock;
-  unsigned short fullMoveNumber;
-  enumPiece capturedPiece;
+    Move move;
+    unsigned char castlingRights;
+    enumSquare enPassantSquare;
+    unsigned short halfmoveClock;
+    unsigned short fullMoveNumber;
+    enumPiece capturedPiece;
 } MoveHistory;
 
 typedef struct
 {
-  // going w a dense representation the holds colors in first 2 then piece types in the following 6
-  U64 pieces[8];         // nWhite, nBlack, nPawn, nKnight, nBishop, nRook, nQueen, nKing
-  enumPiece mailbox[64]; // holds the piecetype at each square for quicker lookup
-  bool whiteToMove;
-  unsigned char castlingRights;  // 4 bits KQkq
-  enumSquare enPassantSquare;    // square that can be captured via en passant
-  unsigned short halfmoveClock;  // for 50 move rule
-  unsigned short fullmoveNumber; // starts at 1 and increments after
-  MoveHistory historyArr[MAX_SEARCH_DEPTH];
-  int historyPly;
+    // going w a dense representation the holds colors in first 2 then piece types in the following 6
+    U64 pieces[8];         // nWhite, nBlack, nPawn, nKnight, nBishop, nRook, nQueen, nKing
+    enumPiece mailbox[64]; // holds the piecetype at each square for quicker lookup
+    bool whiteToMove;
+    unsigned char castlingRights;  // 4 bits KQkq
+    enumSquare enPassantSquare;    // square that can be captured via en passant
+    unsigned short halfmoveClock;  // for 50 move rule
+    unsigned short fullmoveNumber; // starts at 1 and increments after
+    MoveHistory historyArr[MAX_SEARCH_DEPTH];
+    int historyPly;
 } Board;
 
-static inline U64 getAllPieces(const Board *board)
-{
-  return board->pieces[nWhite] | board->pieces[nBlack];
+static inline U64 getAllPieces(const Board *board) {
+    return board->pieces[nWhite] | board->pieces[nBlack];
 }
-static inline U64 getColorPieces(const Board *board, enumPiece color)
-{
-  return board->pieces[color];
+static inline U64 getColorPieces(const Board *board, enumPiece color) {
+    return board->pieces[color];
 }
 // returns bitboard of all pieces of given type regardless of color
-static inline U64 getPieceTypePieces(const Board *board, enumPiece pieceType)
-{
-  return board->pieces[pieceType];
+static inline U64 getPieceTypePieces(const Board *board, enumPiece pieceType) {
+    return board->pieces[pieceType];
 }
 // returns bitboard of all pieces of given type and color
-static inline U64 getSpecificColorPieces(const Board *board, enumPiece color, enumPiece pieceType)
-{
-  return board->pieces[color] & board->pieces[pieceType];
+static inline U64 getSpecificColorPieces(const Board *board, enumPiece color, enumPiece pieceType) {
+    return board->pieces[color] & board->pieces[pieceType];
 }
-static inline bool isValidPiece(enumPiece piece)
-{
-  return (piece >= nPawn && piece <= nKing);
+static inline bool isValidPiece(enumPiece piece) {
+    return (piece >= nPawn && piece <= nKing);
 }
 static inline void removePiece(Board *board, enumPiece piece, enumPiece side,
-                        unsigned int pos) {
+                               unsigned int pos) {
     U64 posBit = 1ULL << pos;
     board->pieces[piece] &= ~posBit;
     board->pieces[side] &= ~posBit;
     board->mailbox[pos] = nWhite; // empty
 }
 static inline void putPiece(Board *board, enumPiece piece, enumPiece side,
-                     unsigned int dest) {
+                            unsigned int dest) {
     U64 destBit = 1ULL << dest;
     board->pieces[piece] |= destBit;
     board->pieces[side] |= destBit;

@@ -390,20 +390,22 @@ void makeMove(Board *board, Move move) {
     enumPiece movingPiece = board->mailbox[from];           // has to be valid
 
     assert(isValidPiece(movingPiece) && "Moving Piece Has To Be Valid in makeMove");
-
+    
+    // save current board state (whiteToMove, castlingRights, enPassantSquare,
+    // halfMoveClock, fullMoveNumber, moveToBeMade, capturedPiece ) into history
+    saveBoardState(board, move, capturedPiece);
+    
     // remove captured Piece from dest and moving Piece from start
     removePiece(board, capturedPiece, opp, capturedDest);
     removePiece(board, movingPiece, side, from);
 
-    // save current board state (whiteToMove, castlingRights, enPassantSquare,
-    // halfMoveClock, fullMoveNumber, moveToBeMade, capturedPiece ) into history
-    saveBoardState(board, move, capturedPiece);
 
     // if capturedPiece isValidPiece or if pawn moved : halfmove clock = 0
     if (movingPiece == nPawn || isValidPiece(capturedPiece))
         board->halfmoveClock = 0;
     else
         board->halfmoveClock++;
+
     // put_piece the moving piece at destination
     putPiece(board, movingPiece, side, to);
 
@@ -411,7 +413,7 @@ void makeMove(Board *board, Move move) {
     if (flags == DOUBLE_PAWN_PUSH_FLAG)
         board->enPassantSquare = to + epPawnOffset;
     else
-        board->enPassantSquare = 0;
+        board->enPassantSquare = NO_SQUARE; // nonValid ep square
 
     // if king or rook moved OR rook was capturedPiece, update castling righ`ts
     if (movingPiece == nKing || movingPiece == nRook)
@@ -423,7 +425,7 @@ void makeMove(Board *board, Move move) {
     if (flags >= KNIGHT_PROMOTION_FLAG && flags <= QUEEN_PROMO_CAPTURE_FLAG) {
         assert(movingPiece == nPawn &&
                "When promoting, Moving Piece has to be a pawn");
-        removePiece(board, movingPiece, side, to);
+        removePiece(board, movingPiece, side, to); // remove pawn at destination 
         enumPiece promoPiece = nQueen;
         switch (flags) {
         case KNIGHT_PROMOTION_FLAG:
@@ -445,7 +447,8 @@ void makeMove(Board *board, Move move) {
         default:
             break;
         }
-        putPiece(board, promoPiece, side, to);
+        movingPiece = promoPiece; 
+        putPiece(board, movingPiece, side, to);
     }
 
     // if castle, remove_piece corresponding rook then put_piece corresponding
@@ -476,11 +479,8 @@ void loadLastBoardState(Board *board) {
     board->halfmoveClock = lastState->halfmoveClock;
     board->fullmoveNumber = lastState->fullMoveNumber;
 }
-// TODO:
-//  completely reverse everything that couldve taken place in the make move
-//  based on the board state
+
 void unmakeMove(Board *board, Move move) {
-    // change board' white to move
     board->whiteToMove = !board->whiteToMove; // change to the side that performed this move
     unsigned int from = getFrom(move);
     unsigned int to = getTo(move);
@@ -511,7 +511,7 @@ void unmakeMove(Board *board, Move move) {
     if (flags == EN_PASSANT_CAPTURE_FLAG)
         capturedDest += epPawnOffset; // the captured piece was above or below
 
-    enumPiece capturedPiece = board->historyArr[board->historyPly].capturedPiece; // if piece was captured in the history
+    enumPiece capturedPiece = board->historyArr[(board->historyPly - 1)].capturedPiece; // if piece was captured in the history
     enumPiece movingPiece = board->mailbox[to];                                   // has to be valid
 
     assert(isValidPiece(movingPiece) && "Moving Piece was invalid in unmake move ");
@@ -532,21 +532,17 @@ void unmakeMove(Board *board, Move move) {
                "When undoing promotion, piece has to be between knight and queen ");
         removePiece(board, movingPiece, side, to); // remove promo piece
         movingPiece = nPawn;
-        putPiece(board, movingPiece, side, to); // place pawn back at to (will be moved back later)
     }
 
-    // remove moving piece from destination
-    removePiece(board, movingPiece, side, to);
-
+    removePiece(board, movingPiece, side, to); // remove moving piece from destination
+    putPiece(board, movingPiece, side, from);  // place movingPiece at start; captured at dest 
+    putPiece(board, capturedPiece, opp, capturedDest); // if empty nothing will be placed
+    
     // load last board state , decrement size then load state (whiteToMove (changed at start
     // of function), castlingRights, enPassantSquare, halfMoveClock,
     // fullMoveNumber) into current board,
     loadLastBoardState(board);
 
-    // place moving piece at start and capturedPiece at destination
-    // moving piece )
-    putPiece(board, movingPiece, side, from);
-    putPiece(board, capturedPiece, opp, capturedDest); // if empty nothing will be placed
 }
 
 void getSquareName(unsigned int sq, char *buf) {

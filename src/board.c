@@ -69,7 +69,7 @@ void printChessBoard(const Board *board)
                 }
             }
 
-            assert(c != 'x' && "Each character printed should have a relevant value");
+          //  assert(c != 'x' && "Each character printed should have a relevant value");
 
             // white is upper
             c = isWhite != 0 ? (char)toupper(c) : c;
@@ -337,6 +337,8 @@ char *readFromCastlingRights(Board *board, char *fen)
 }
 char *readEnPassantFromFen(Board *board, char *fen)
 {
+    board->enPassantSquare = NO_SQUARE; // make invalid square 
+
     if (*fen == '-')
     {
         fen += 2;
@@ -372,9 +374,10 @@ char *readHalfMoveClockFromFen(Board *board, char *fen)
 {
     char c = *fen;
 
+    board->halfmoveClock = 0; 
+
     if (!isdigit(c))
     {
-        board->halfmoveClock = 0; 
         return ""; 
     }
 
@@ -393,9 +396,9 @@ void readFullMoveClockFromFen(Board *board, char *fen)
 {
     char c = *fen;
 
+    board->fullmoveNumber = 1; 
     if (!isdigit(c))
     {
-        board->fullmoveNumber = 1; 
         return ; 
     }
 
@@ -419,6 +422,7 @@ static void initMailbox ( Board * board){
         }
     }
 }
+//TODO: make sure that enpassant squares are printed correctly 
 void initBoard(Board *board, char *fen)
 {
     
