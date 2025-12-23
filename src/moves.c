@@ -34,13 +34,11 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
 
         U64 singlePushPattern = getSinglePushPattern(emptySquares, pos, side);
         extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank, fromSquare, QUIET_MOVE_FLAG);
-        puts("Single Pushes: ");
-        printBB(singlePushPattern & removeLastRank);
+        
         // only if single push is possible
         if (singlePushPattern) {
             U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
-            puts("Double Pushes: ");
-            printBB(doublePushPattern);
+            
             extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
         }
 
@@ -52,8 +50,7 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
         enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
         U64 opponentPieces = getColorPieces(board, opponentSide);
         extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces & removeLastRank, fromSquare, CAPTURE_FLAG);
-        puts("Pawn Attacks: ");
-        printBB(attackPattern & opponentPieces & removeLastRank);
+        
         // for promotions can just get every single push or capture that lands
         // on last rank
         U64 promotionPushes = singlePushPattern & ~removeLastRank;
@@ -61,29 +58,26 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
         for (int i = KNIGHT_PROMOTION_FLAG; i <= QUEEN_PROMOTION_FLAG; i++) {
             U64 copy = promotionPushes;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
-            puts("Promo Pushes (Should be 4): ");     
-            printBB(copy); 
+            
         }
 
         U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
         for (int i = KNIGHT_PROMO_CAPTURE_FLAG; i <= QUEEN_PROMO_CAPTURE_FLAG; i++) {
             U64 copy = promotionCaptures;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
-            puts("Promo Captures : ");
-            printBB(copy);
+            
         }
 
         // check enpassant if nonzero
         if (board->enPassantSquare) {
             U64 enPassantBit = 1ULL << board->enPassantSquare;
-            // en passant is only valid if on the 2nd rank or 7th rank 
-            if((enPassantBit & RANK_2) || (enPassantBit & RANK_7))
+            // en passant is only valid if on the 3rd rank or 6th rank 
+            if((enPassantBit & RANK_3) || (enPassantBit & RANK_6))
             {
                 // if they can get to the enpassant square by capturing it's valid
                 U64 enPassantCaptures = attackPattern & enPassantBit;
                 extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
-                puts("En passants: ");
-                printBB(enPassantCaptures);
+                
             }
             
         }
