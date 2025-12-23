@@ -34,10 +34,13 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
 
         U64 singlePushPattern = getSinglePushPattern(emptySquares, pos, side);
         extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank, fromSquare, QUIET_MOVE_FLAG);
-
+        puts("Single Pushes: ");
+        printBB(singlePushPattern & removeLastRank);
         // only if single push is possible
         if (singlePushPattern) {
             U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
+            puts("Double Pushes: ");
+            printBB(doublePushPattern);
             extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
         }
 
@@ -49,27 +52,40 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
         enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
         U64 opponentPieces = getColorPieces(board, opponentSide);
         extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces & removeLastRank, fromSquare, CAPTURE_FLAG);
-
+        puts("Pawn Attacks: ");
+        printBB(attackPattern & opponentPieces & removeLastRank);
         // for promotions can just get every single push or capture that lands
         // on last rank
         U64 promotionPushes = singlePushPattern & ~removeLastRank;
+        
         for (int i = KNIGHT_PROMOTION_FLAG; i <= QUEEN_PROMOTION_FLAG; i++) {
             U64 copy = promotionPushes;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
+            puts("Promo Pushes (Should be 4): ");     
+            printBB(copy); 
         }
 
         U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
         for (int i = KNIGHT_PROMO_CAPTURE_FLAG; i <= QUEEN_PROMO_CAPTURE_FLAG; i++) {
             U64 copy = promotionCaptures;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
+            puts("Promo Captures : ");
+            printBB(copy);
         }
 
         // check enpassant if nonzero
         if (board->enPassantSquare) {
             U64 enPassantBit = 1ULL << board->enPassantSquare;
-            // if they can get to the enpassant square by capturing it's valid
-            U64 enPassantCaptures = attackPattern & enPassantBit;
-            extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
+            // en passant is only valid if on the 2nd rank or 7th rank 
+            if((enPassantBit & RANK_2) || (enPassantBit & RANK_7))
+            {
+                // if they can get to the enpassant square by capturing it's valid
+                U64 enPassantCaptures = attackPattern & enPassantBit;
+                extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
+                puts("En passants: ");
+                printBB(enPassantCaptures);
+            }
+            
         }
     }
 }
@@ -390,16 +406,15 @@ void makeMove(Board *board, Move move) {
     enumPiece movingPiece = board->mailbox[from];           // has to be valid
 
     assert(isValidPiece(movingPiece) && "Moving Piece Has To Be Valid in makeMove");
-    
+
     // save current board state (whiteToMove, castlingRights, enPassantSquare,
     // halfMoveClock, fullMoveNumber, moveToBeMade, capturedPiece ) into history
     saveBoardState(board, move, capturedPiece);
-    
+
     // remove captured Piece from dest and moving Piece from start
     if (isValidPiece(capturedPiece))
         removePiece(board, capturedPiece, opp, capturedDest);
     removePiece(board, movingPiece, side, from);
-
 
     // if capturedPiece isValidPiece or if pawn moved : halfmove clock = 0
     if (movingPiece == nPawn || isValidPiece(capturedPiece))
@@ -426,7 +441,7 @@ void makeMove(Board *board, Move move) {
     if (flags >= KNIGHT_PROMOTION_FLAG && flags <= QUEEN_PROMO_CAPTURE_FLAG) {
         assert(movingPiece == nPawn &&
                "When promoting, Moving Piece has to be a pawn");
-        removePiece(board, movingPiece, side, to); // remove pawn at destination 
+        removePiece(board, movingPiece, side, to); // remove pawn at destination
         enumPiece promoPiece = nQueen;
         switch (flags) {
         case KNIGHT_PROMOTION_FLAG:
@@ -448,7 +463,7 @@ void makeMove(Board *board, Move move) {
         default:
             break;
         }
-        movingPiece = promoPiece; 
+        movingPiece = promoPiece;
         putPiece(board, movingPiece, side, to);
     }
 
@@ -513,7 +528,7 @@ void unmakeMove(Board *board, Move move) {
         capturedDest += epPawnOffset; // the captured piece was above or below
 
     enumPiece capturedPiece = board->historyArr[(board->historyPly - 1)].capturedPiece; // if piece was captured in the history
-    enumPiece movingPiece = board->mailbox[to];                                   // has to be valid
+    enumPiece movingPiece = board->mailbox[to];                                         // has to be valid
 
     assert(isValidPiece(movingPiece) && "Moving Piece was invalid in unmake move ");
 
@@ -536,15 +551,14 @@ void unmakeMove(Board *board, Move move) {
     }
 
     removePiece(board, movingPiece, side, to); // remove moving piece from destination
-    putPiece(board, movingPiece, side, from);  // place movingPiece at start; captured at dest 
-    if(isValidPiece(capturedPiece))
+    putPiece(board, movingPiece, side, from);  // place movingPiece at start; captured at dest
+    if (isValidPiece(capturedPiece))
         putPiece(board, capturedPiece, opp, capturedDest); // if empty nothing will be placed
-    
+
     // load last board state , decrement size then load state (whiteToMove (changed at start
     // of function), castlingRights, enPassantSquare, halfMoveClock,
     // fullMoveNumber) into current board,
     loadLastBoardState(board);
-
 }
 
 void getSquareName(unsigned int sq, char *buf) {

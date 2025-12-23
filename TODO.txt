@@ -1,1 +1,9 @@
 - Tests are looking good, now following: https://www.chessprogramming.net/perfect-perft/, the first issue arose at Illegal ep move #2 (this move is explained in: https://www.talkchess.com/forum/viewtopic.php?t=47318)
+
+8/8/4k3/8/2p5/8/B2P2K1/8 w - - 0 1 :
+- a2b3(+72) c4b3 (+72) (every move is incorrect after this point) 
+    -d2d3(+9) b3b2(+9) (every move has 1 more then they're supposed to)  
+        -d3d4(+1) 
+        Problem: if promoting, can't count the single pawn pushes or attacks as a move, for some reason, b2a1 is a move when nothing is there
+            - nothing is there on the enemy side so it's most likely a bug with pawn move generation  
+            -MIGHT ALSO BE AN ENPASSANT THING IF THE EN_PASSANT SQUARE = 0  ** it was the eP square getting set to zero, going to check if ep is valid before counting it as a move 
