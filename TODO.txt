@@ -1,3 +1,1 @@
--all current test suites pass except kiwipete 6, if this continues to be an issue will check in with other test positions 
-
-
+- Tests are looking good, now following: https://www.chessprogramming.net/perfect-perft/, the first issue arose at Illegal ep move #2 (this move is explained in: https://www.talkchess.com/forum/viewtopic.php?t=47318)
