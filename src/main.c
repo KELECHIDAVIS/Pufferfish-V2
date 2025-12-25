@@ -162,7 +162,7 @@ void parseGo(Board *board, char *line)
         if(!depth)
             depth = 3; //default; 
 
-        board->bestMove = 0; //init to 0
+        board->bestMove = 0; // init bestMove 
         alphaBeta(board, depth , DBL_MIN, DBL_MAX); 
 
         // If no moves or mated

@@ -1,0 +1,105 @@
+for some reason, running go 3 gives an assertion in unmakeMove but running go perft 3 does not and returns the right value? it should be the same functionality but I guess something is going wrong maybe with my alpha beta logic 
+    movingPiece was empty: a2a3 a2a4 b2b4 a4b3 ( this is an invalid history of moves, you can't go a2a3 then a2a4 right after )
+    problem: another "X" piece type is being created somehow: 
+    ERROR: an invalid piece with pieceType 8 was trying to be moved in unmakeMove
+    8| r n b q k b n r 
+    7| . p p p p p p p
+    6| p . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . .
+    3| X p . . . . . . 
+    2| . . P P P P P P
+    1| R N B Q K B N R
+    _ _ _ _ _ _ _ _
+    a b c d e f g h 
+    White Pieces
+    8| . . . . . . . .
+    7| . . . . . . . .
+    6| . . . . . . . .
+    5| . . . . . . . . 
+    4| . . . . . . . .
+    3| 1 . . . . . . .
+    2| . . 1 1 1 1 1 1
+    1| 1 1 1 1 1 1 1 1 
+    _ _ _ _ _ _ _ _
+    a b c d e f g h
+    Black Pieces
+    8| 1 1 1 1 1 1 1 1
+    7| . 1 1 1 1 1 1 1
+    6| 1 . . . . . . . 
+    5| . . . . . . . .
+    4| . . . . . . . .
+    3| . 1 . . . . . .
+    2| . . . . . . . . 
+    1| . . . . . . . .
+    _ _ _ _ _ _ _ _
+    a b c d e f g h
+    Pawns
+    8| . . . . . . . . 
+    7| . 1 1 1 1 1 1 1
+    6| 1 . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . .
+    3| . 1 . . . . . . 
+    2| . . 1 1 1 1 1 1
+    1| . . . . . . . .
+    _ _ _ _ _ _ _ _
+    a b c d e f g h 
+    Knights
+    8| . 1 . . . . 1 .
+    7| . . . . . . . .
+    6| . . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . . 
+    3| . . . . . . . .
+    2| . . . . . . . .
+    1| . 1 . . . . 1 .
+    _ _ _ _ _ _ _ _
+    a b c d e f g h 
+    Bishops
+    8| . . 1 . . 1 . .
+    7| . . . . . . . .
+    6| . . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . . 
+    3| . . . . . . . .
+    2| . . . . . . . .
+    1| . . 1 . . 1 . .
+    _ _ _ _ _ _ _ _
+    a b c d e f g h 
+    Rooks
+    8| 1 . . . . . . 1
+    7| . . . . . . . .
+    6| . . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . . 
+    3| . . . . . . . .
+    2| . . . . . . . .
+    1| 1 . . . . . . 1
+    _ _ _ _ _ _ _ _
+    a b c d e f g h 
+    Queens
+    8| . . . 1 . . . .
+    7| . . . . . . . .
+    6| . . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . . 
+    3| . . . . . . . .
+    2| . . . . . . . .
+    1| . . . 1 . . . .
+    _ _ _ _ _ _ _ _
+    a b c d e f g h 
+    Kings
+    8| . . . . 1 . . .
+    7| . . . . . . . .
+    6| . . . . . . . .
+    5| . . . . . . . .
+    4| . . . . . . . . 
+    3| . . . . . . . .
+    2| . . . . . . . .
+    1| . . . . 1 . . .
+    _ _ _ _ _ _ _ _ 
+    a b c d e f g h
+    Moves: a2a3a2a4b2b4a4b3
+
+captured pieces are still being set to nWhite? 

@@ -524,7 +524,18 @@ void unmakeMove(Board *board, Move move) {
     enumPiece capturedPiece = board->historyArr[(board->historyPly - 1)].capturedPiece; // if piece was captured in the history
     enumPiece movingPiece = board->mailbox[to];                                         // has to be valid
 
-    assert(isValidPiece(movingPiece) && "Moving Piece was invalid in unmake move ");
+    if(!isValidPiece(movingPiece)){ 
+        // print chess board 
+        printf("ERROR: an invalid piece with pieceType %d was trying to be moved in unmakeMove\n", movingPiece); 
+        printChessBoard(board); 
+        // print moves that go to this position 
+        printf("Moves: "); 
+        for (int i =0 ; i< board->historyPly; i++){
+            printMove(board->historyArr[i].move);
+            printf(" ");  
+        }printf("\n"); 
+        abort(); 
+    }
 
     // if castle, remove_piece corresponding rook at end then put_piece
     // corresponding rook at start
