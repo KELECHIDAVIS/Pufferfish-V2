@@ -140,6 +140,7 @@ typedef struct
     unsigned short fullmoveNumber; // starts at 1 and increments after
     MoveHistory historyArr[MAX_SEARCH_DEPTH];
     int historyPly;
+    Move bestMove; // best move from current Position 
 } Board;
 
 static inline U64 getAllPieces(const Board *board) {

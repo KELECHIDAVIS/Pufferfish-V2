@@ -8,6 +8,7 @@
 #include "moves.h"
 #include "attack_patterns.h"
 #include "perft.h"
+#include "searching.h"
 #include <time.h>
 
 #define INPUT_BUFFER 4096
@@ -153,37 +154,25 @@ void parseGo(Board *board, char *line)
         U64 nodesPerSecond = (U64)((double)nodes / seconds);
         printf("Nodes Per Second: %llu\n", nodesPerSecond);
     }
-    else
+    else // ex: go 4, return the best move searching a depth of 4
     {
-        // If Arena sends standard "go", just return a dummy move so it doesn't hang.
-        // Or pick the first legal move.
-        Move moveList[MAX_MOVES];
-        size_t numMoves = 0;
-        getPseudoLegalMoves(board, moveList, &numMoves);
 
-        if (numMoves > 0)
-        {
-            // Find a LEGAL move (not just pseudo)
-            for (size_t i = 0; i < numMoves; i++)
-            {
-                makeMove(board, moveList[i]);
-                enumPiece opp = board->whiteToMove ? nWhite : nBlack; // side that just moved
-                if (!isSideInCheck(board, opp))
-                { // was move valid?
-                    unmakeMove(board, moveList[i]);
+        int depth = atoi (line+2); 
+        
+        if(!depth)
+            depth = 3; //default; 
 
-                    // Output in UCI format
-                    char buf[6];
-                    translateSquareToAlgebraic(getFrom(moveList[i]), buf);
-                    translateSquareToAlgebraic(getTo(moveList[i]), buf + 2);
-                    printf("bestmove %s\n", buf);
-                    return;
-                }
-                unmakeMove(board, moveList[i]);
-            }
-        }
+        board->bestMove = 0; //init to 0
+        alphaBeta(board, depth , DBL_MIN, DBL_MAX); 
+
         // If no moves or mated
-        printf("bestmove (none)\n");
+        if (board->bestMove){
+            printf("bestmove ");
+            printMove(board->bestMove); 
+            printf("\n"); 
+        }else{
+            printf("bestmove (none)\n");
+        }
     }
 }
 
@@ -233,6 +222,10 @@ int main()
         }
     }
 
+    char * test = "go 4"; 
+    int depth = atoi(test+2); 
+
+    printf("Depth %d\n", depth); 
 
     return 0;
 }
