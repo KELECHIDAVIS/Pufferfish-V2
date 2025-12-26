@@ -157,20 +157,49 @@ void parseGo(Board *board, char *line)
     else // ex: go 4, return the best move searching a depth of 4
     {
 
-        int depth = atoi (line+2); 
-        
-        if(!depth)
-            depth = 5; //default; 
+        int depth = -1;
+        int wtime = -1, btime = -1;
+        int movetime = -1;
 
-        
-        Move bestMove = getBestMove(board, depth); 
+        // 1. Check for "infinite"
+        if (strstr(line, "infinite")) {
+            depth = 6;
+        }
 
+        // 2. Parse "wtime", "btime", "movetime", "depth"
+        char *ptr = NULL;
+
+        if ((ptr = strstr(line, "wtime"))) wtime = atoi(ptr + 6);
+        if ((ptr = strstr(line, "btime"))) btime = atoi(ptr + 6);
+        if ((ptr = strstr(line, "movetime"))) movetime = atoi(ptr + 9);
+        if ((ptr = strstr(line, "depth"))) depth = atoi(ptr + 6);
+
+        // 3. Determine Search Mode
+        // Ideally implement time management here.
+        // Example: int timeToThink = (board->sideToMove == WHITE) ? wtime / 30 : btime / 30;
         
-        if (bestMove){
+        // For now, since your engine seems to rely on fixed depth:
+        if (depth == -1) {
+            // If Lichess didn't specify a depth (it usually provides time instead),
+           
+            if (wtime > 0 && btime > 0) {
+                
+                if (wtime > 60000 && btime > 60000) depth = 6;
+                else depth = 5;
+            } else {
+                depth = 5; // Fallback default
+            }
+        }
+
+        // 4. Execute Search
+        // If you add time management later, you would pass 'movetime' or 'wtime' to getBestMove
+        Move bestMove = getBestMove(board, depth);
+
+        if (bestMove) {
             printf("bestmove ");
-            printMove(bestMove); 
-            printf("\n"); 
-        }else{ // If no moves or mated
+            printMove(bestMove);
+            printf("\n");
+        } else {
             printf("bestmove (none)\n");
         }
     }
@@ -196,7 +225,7 @@ int main()
 
         if (strcmp(line, "uci") == 0)
         {
-            printf("id name Pufferfish\n");
+            printf("id name Goopis\n");
             printf("id author Kelechi Duru \n");
             printf("uciok\n");
         }
