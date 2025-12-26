@@ -160,17 +160,17 @@ void parseGo(Board *board, char *line)
         int depth = atoi (line+2); 
         
         if(!depth)
-            depth = 3; //default; 
+            depth = 5; //default; 
 
-        board->bestMove = 0; // init bestMove 
-        alphaBeta(board, depth , DBL_MIN, DBL_MAX); 
+        
+        Move bestMove = getBestMove(board, depth); 
 
-        // If no moves or mated
-        if (board->bestMove){
+        
+        if (bestMove){
             printf("bestmove ");
-            printMove(board->bestMove); 
+            printMove(bestMove); 
             printf("\n"); 
-        }else{
+        }else{ // If no moves or mated
             printf("bestmove (none)\n");
         }
     }
@@ -222,10 +222,7 @@ int main()
         }
     }
 
-    char * test = "go 4"; 
-    int depth = atoi(test+2); 
-
-    printf("Depth %d\n", depth); 
+ 
 
     return 0;
 }
