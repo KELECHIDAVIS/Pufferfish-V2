@@ -11,6 +11,7 @@ static void extractMovesFromBB(Move *moveList, size_t *numMoves, U64 possibleMov
         moveList[(*numMoves)++] = move;
     }
 }
+// TODO: order moves to improve alpha beta performance, 
 void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves) {
     getPawnMoves(board, moveList, numMoves);
     getKnightMoves(board, moveList, numMoves);
@@ -18,6 +19,8 @@ void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves) {
     getRookMoves(board, moveList, numMoves);
     getQueenMoves(board, moveList, numMoves);
     getKingMoves(board, moveList, numMoves);
+
+    // TODO: sort moves based on viability to improve alpha beta 
 }
 
 void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
