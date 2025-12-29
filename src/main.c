@@ -179,13 +179,13 @@ void parseGo(Board *board, char *line) {
         // If you add time management later, you would pass 'movetime' or 'wtime' to getBestMove
         Move bestMove = getBestMove(board, depth);
 
+        printf("bestmove ");
         if (bestMove) {
-            printf("bestmove ");
             printMove(bestMove);
-            printf("\n");
-        } else {
-            printf("bestmove (none)\n");
+        } else { 
+            printf("0000"); // no move can be made 
         }
+        printf("\n");
     }
 }
 

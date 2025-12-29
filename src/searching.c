@@ -2,6 +2,10 @@
 
 //searches and sets board's best move for that position 
 double alphaBeta(Board *board, int depth, double alpha, double beta) {
+    if (board->historyPly >= MAX_SEARCH_DEPTH - 10) { // Leave some margin
+        return evaluate(board);                       // Emergency exit
+    }
+    
     if (depth <= 0) 
         return evaluate(board); 
 

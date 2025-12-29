@@ -365,7 +365,7 @@ void readFullMoveClockFromFen(Board *board, char *fen) {
 }
 static void initMailbox(Board *board) {
     for (int sq = 0; sq < 64; sq++) {
-        board->mailbox[sq] = nWhite; // if it doesn't hold a valid piece type it's empty
+        board->mailbox[sq] = EMPTY; // if it doesn't hold a valid piece type it's empty
     }
     for (enumPiece piece = nPawn; piece <= nKing; piece++) {
         U64 bb = board->pieces[piece];

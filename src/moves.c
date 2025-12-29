@@ -11,7 +11,7 @@ static void extractMovesFromBB(Move *moveList, size_t *numMoves, U64 possibleMov
         moveList[(*numMoves)++] = move;
     }
 }
-// TODO: order moves to improve alpha beta performance, 
+// TODO: order moves to improve alpha beta performance,
 void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves) {
     getPawnMoves(board, moveList, numMoves);
     getKnightMoves(board, moveList, numMoves);
@@ -19,14 +19,11 @@ void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves) {
     getRookMoves(board, moveList, numMoves);
     getQueenMoves(board, moveList, numMoves);
     getKingMoves(board, moveList, numMoves);
-
-    
 }
 
 // TODO: sort moves based on viability to improve alpha beta
 
-void sortMoveList (Move* moveList , size_t numMoves){
-
+void sortMoveList(Move *moveList, size_t numMoves) {
 }
 void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
     enumPiece side = board->whiteToMove ? nWhite : nBlack;
@@ -42,11 +39,11 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
 
         U64 singlePushPattern = getSinglePushPattern(emptySquares, pos, side);
         extractMovesFromBB(moveList, numMoves, singlePushPattern & removeLastRank, fromSquare, QUIET_MOVE_FLAG);
-        
+
         // only if single push is possible
         if (singlePushPattern) {
             U64 doublePushPattern = getDoublePushPattern(emptySquares, singlePushPattern, side);
-            
+
             extractMovesFromBB(moveList, numMoves, doublePushPattern, fromSquare, DOUBLE_PAWN_PUSH_FLAG);
         }
 
@@ -58,36 +55,31 @@ void getPawnMoves(const Board *board, Move *moveList, size_t *numMoves) {
         enumPiece opponentSide = side == nWhite ? nBlack : nWhite;
         U64 opponentPieces = getColorPieces(board, opponentSide);
         extractMovesFromBB(moveList, numMoves, attackPattern & opponentPieces & removeLastRank, fromSquare, CAPTURE_FLAG);
-        
+
         // for promotions can just get every single push or capture that lands
         // on last rank
         U64 promotionPushes = singlePushPattern & ~removeLastRank;
-        
+
         for (int i = KNIGHT_PROMOTION_FLAG; i <= QUEEN_PROMOTION_FLAG; i++) {
             U64 copy = promotionPushes;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
-            
         }
 
         U64 promotionCaptures = attackPattern & opponentPieces & ~removeLastRank;
         for (int i = KNIGHT_PROMO_CAPTURE_FLAG; i <= QUEEN_PROMO_CAPTURE_FLAG; i++) {
             U64 copy = promotionCaptures;
             extractMovesFromBB(moveList, numMoves, copy, fromSquare, (MoveFlag)i);
-            
         }
 
         // check enpassant if nonzero
-        if (board->enPassantSquare) {
+        if (board->enPassantSquare != NO_SQUARE && board->enPassantSquare < 64) {
             U64 enPassantBit = 1ULL << board->enPassantSquare;
-            // en passant is only valid if on the 3rd rank or 6th rank 
-            if((enPassantBit & RANK_3) || (enPassantBit & RANK_6))
-            {
+            // en passant is only valid if on the 3rd rank or 6th rank
+            if ((enPassantBit & RANK_3) || (enPassantBit & RANK_6)) {
                 // if they can get to the enpassant square by capturing it's valid
                 U64 enPassantCaptures = attackPattern & enPassantBit;
                 extractMovesFromBB(moveList, numMoves, enPassantCaptures, fromSquare, EN_PASSANT_CAPTURE_FLAG);
-                
             }
-            
         }
     }
 }
@@ -355,6 +347,13 @@ static void updateCastlingRights(Board *board, enumPiece piece,
 // halfMoveClock, fullMoveNumber, moveToBeMade, capturedPiece ) into history to
 // be recalled later in unmake move
 void saveBoardState(Board *board, Move move, enumPiece capturedPiece) {
+
+    if (board->historyPly >= MAX_SEARCH_DEPTH) {
+        fprintf(stderr, "ERROR: History stack overflow at depth %d\n", board->historyPly);
+        printChessBoard(board);
+        abort();
+    }
+
     MoveHistory *currHistory = &board->historyArr[board->historyPly];
 
     currHistory->castlingRights = board->castlingRights;
@@ -532,17 +531,18 @@ void unmakeMove(Board *board, Move move) {
     enumPiece capturedPiece = board->historyArr[(board->historyPly - 1)].capturedPiece; // if piece was captured in the history
     enumPiece movingPiece = board->mailbox[to];                                         // has to be valid
 
-    if(!isValidPiece(movingPiece)){ 
-        // print chess board 
-        printf("ERROR: an invalid piece with pieceType %d was trying to be moved in unmakeMove\n", movingPiece); 
-        printChessBoard(board); 
-        // print moves that go to this position 
-        printf("Moves: "); 
-        for (int i =0 ; i< board->historyPly; i++){
+    if (!isValidPiece(movingPiece)) {
+        // print chess board
+        printf("ERROR: an invalid piece with pieceType %d was trying to be moved in unmakeMove\n", movingPiece);
+        printChessBoard(board);
+        // print moves that go to this position
+        printf("Moves: ");
+        for (int i = 0; i < board->historyPly; i++) {
             printMove(board->historyArr[i].move);
-            printf(" ");  
-        }printf("\n"); 
-        abort(); 
+            printf(" ");
+        }
+        printf("\n");
+        abort();
     }
 
     // if castle, remove_piece corresponding rook at end then put_piece

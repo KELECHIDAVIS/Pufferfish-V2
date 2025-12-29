@@ -1,0 +1,1 @@
+Have to check c8d6, when running the tournament, engine was trying to make that illegal move 
