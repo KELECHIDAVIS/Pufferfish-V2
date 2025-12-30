@@ -12,7 +12,7 @@ double alphaBeta(Board *board, int depth, double alpha, double beta) {
     // for all legal moves
     Move move_list[MAX_MOVES];
     size_t numMoves = 0;
-    //TODO: research move ordering to make this search more efficient
+    
     getPseudoLegalMoves(board, move_list, &numMoves);
     enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
 
