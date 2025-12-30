@@ -37,7 +37,7 @@ double alphaBeta(Board *board, int depth, double alpha, double beta) {
         }
         
     }
-    return alpha; 
+    return alpha; // alpha being returned is probably neg inifinity 
 }
 
 Move getBestMove(Board *board, int depth) {
@@ -47,6 +47,7 @@ Move getBestMove(Board *board, int depth) {
     enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
     
     Move bestMove = 0;  // or some invalid move constant
+    Move legalMove = 0; // store first legal move just incase best move doesn't get set  
     double bestScore = -INFINITY;  // or some very negative value
     
     for (size_t i = 0; i < numMoves; i++) {
@@ -55,7 +56,8 @@ Move getBestMove(Board *board, int depth) {
         if (!isSideInCheck(board, currSide)) {
             double score = -alphaBeta(board, depth - 1, -INFINITY, INFINITY);
             unmakeMove(board, move_list[i]);
-            
+            if(!legalMove) 
+                legalMove = move_list[i]; 
             if (score > bestScore) {
                 bestScore = score;
                 bestMove = move_list[i];
@@ -65,5 +67,7 @@ Move getBestMove(Board *board, int depth) {
         }
     }
     
+    if (!bestMove && legalMove)
+        return legalMove ; 
     return bestMove;
 }
