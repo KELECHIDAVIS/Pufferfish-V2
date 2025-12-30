@@ -199,7 +199,7 @@ int main() {
 
     initStandardChess(&board);
     precomputeAllAttacks();
-    //init_pesto_tables();
+    init_pesto_tables();
 
     // 2. UCI Loop
     while (fgets(line, INPUT_BUFFER, stdin)) {
