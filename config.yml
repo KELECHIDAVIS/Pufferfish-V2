@@ -104,7 +104,7 @@ engine: # Engine settings.
     # UCI_ShowWDL: true              # Show the chance of the engine winning.
     go_commands: # Additional options to pass to the UCI go command.
       #     nodes: 1                     # Search so many nodes only.
-      depth: 6 # Search depth ply only.
+     # depth: 6 # Search depth ply only.
   #     movetime: 1000               # Integer. Search exactly movetime milliseconds.
 
   # xboard_options:                  # Arbitrary XBoard options passed to the engine.
@@ -124,7 +124,7 @@ engine: # Engine settings.
 abort_time: 30 # Time to abort a game in seconds when there is no activity.
 fake_think_time: false # Artificially slow down the bot to pretend like it's thinking.
 rate_limiting_delay: 0 # Time (in ms) to delay after sending a move to prevent "Too Many Requests" errors.
-move_overhead: 2000 # Increase if your bot flags games too often.
+move_overhead: 500 # Increase if your bot flags games too often.
 max_takebacks_accepted: 0 # The number of times to allow an opponent to take back a move in a game.
 quit_after_all_games_finish: false # If set to true, then pressing Ctrl-C to quit will only stop lichess-bot after all current games have finished.
 

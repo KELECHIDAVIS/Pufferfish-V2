@@ -108,7 +108,7 @@ void sortMoveList(const Board* board, Move *moveList, size_t numMoves) {
         return;
 
     // Score all moves once
-    ScoredMove scoredMoves[numMoves];
+    ScoredMove scoredMoves[MAX_MOVES]; 
     for (size_t i = 0; i < numMoves; i++) {
         scoredMoves[i].move = moveList[i];
         scoredMoves[i].score = scoreMoveForOrdering(board, moveList[i]);

@@ -28,7 +28,7 @@ bool shouldStop() {
 
 static uint64_t nodeCount = 0;
 
-//searches and sets board's best move for that position 
+// searches and sets board's best move for that position
 double alphaBeta(Board *board, int depth, double alpha, double beta) {
 
     nodeCount++;
@@ -45,8 +45,8 @@ double alphaBeta(Board *board, int depth, double alpha, double beta) {
     if (board->historyPly >= MAX_SEARCH_DEPTH - 10) { // Leave some margin
         return evaluate(board);                       // Emergency exit
     }
-    
-    if (depth <= 0) 
+
+    if (depth <= 0)
         return evaluate(board);
 
     // Check for draw by fifty-move rule
@@ -65,25 +65,24 @@ double alphaBeta(Board *board, int depth, double alpha, double beta) {
     size_t legalMoveCount = 0;
 
     for (size_t i = 0; i < numMoves; i++) {
-       
+
         makeMove(board, move_list[i]);
 
         if (!isSideInCheck(board, currSide)) { // legal move
             legalMoveCount++;
-            double score = -alphaBeta(board, depth - 1, -beta , -alpha);
-            
-            unmakeMove(board, move_list[i]); // unmake move before returning 
-            
-            if(score>= beta)
-                return beta; // opponent wouldn't allow move so return 
+            double score = -alphaBeta(board, depth - 1, -beta, -alpha);
 
-            if(score > alpha)
+            unmakeMove(board, move_list[i]); // unmake move before returning
+
+            if (score >= beta)
+                return beta; // opponent wouldn't allow move so return
+
+            if (score > alpha)
                 alpha = score;
 
-        }else{ // unmake illegal move 
+        } else { // unmake illegal move
             unmakeMove(board, move_list[i]);
         }
-        
     }
 
     // No legal moves found - check for checkmate or stalemate
@@ -98,21 +97,23 @@ double alphaBeta(Board *board, int depth, double alpha, double beta) {
         }
     }
 
-    return alpha; // alpha being returned is probably neg inifinity 
+    return alpha; // alpha being returned is probably neg inifinity
 }
 
 Move getBestMove(Board *board, int maxTimeMs) {
     Move bestMove = 0;
     double bestScore = -INFINITY;
 
-    // Initialize search with allocated time
-    nodeCount =0 ; // reset node counts 
+    nodeCount = 0;
     initSearch(maxTimeMs);
 
-    fprintf(stderr, "Starting search with %dms allocated\n", maxTimeMs); // Debug
+    fprintf(stderr, "Starting search with %dms allocated\n", maxTimeMs);
+    fflush(stderr);
 
-    // Iterative deepening: search depth 1, 2, 3, ... until time runs out
-    for (int depth = 1; depth < MAX_SEARCH_DEPTH; depth++) {
+    int maxDepth = 10; // Reasonable hard limit
+
+    // iterative deepening
+    for (int depth = 1; depth < maxDepth && depth < MAX_SEARCH_DEPTH; depth++) {
         Move move_list[MAX_MOVES];
         size_t numMoves = 0;
 
@@ -132,7 +133,6 @@ Move getBestMove(Board *board, int maxTimeMs) {
                 double score = -alphaBeta(board, depth - 1, -INFINITY, INFINITY);
                 unmakeMove(board, move_list[i]);
 
-                // If we ran out of time during this depth, don't trust the results
                 if (searchInfo.timeUp) {
                     completedDepth = false;
                     break;
@@ -143,26 +143,36 @@ Move getBestMove(Board *board, int maxTimeMs) {
                     iterationBestMove = move_list[i];
                 }
             } else {
-                unmakeMove(board, move_list[i]); // unmake illegal move 
+                unmakeMove(board, move_list[i]); // unmake illegal move
             }
         }
 
-        // Only update best move if we completed this depth
         if (completedDepth && iterationBestMove) {
             bestMove = iterationBestMove;
             bestScore = iterationBestScore;
 
-            int elapsed =getElapsedTime()   ; 
+            int elapsed = getElapsedTime();
             fprintf(stderr, "Completed depth %d in %dms (score: %.0f)\n",
-                    depth, elapsed, bestScore); // Debug
+                    depth, elapsed, bestScore);
+            fflush(stderr);
         }
 
-        // Stop if time is up or we found a mate
-        if (searchInfo.timeUp || bestScore > MATE_SCORE - 100) {
-            fprintf(stderr, "Time up! Searched to depth %d\n", depth - 1); // Debug
+        if (searchInfo.timeUp) {
+            fprintf(stderr, "Time up at depth %d\n", depth);
+            fflush(stderr);
+            break;
+        }
+
+        if (bestScore > MATE_SCORE - 100) {
+            fprintf(stderr, "Found mate, stopping search\n");
+            fflush(stderr);
             break;
         }
     }
-    fprintf(stderr, "Returning move after %dms\n", getElapsedTime()); // Debug
+
+    fprintf(stderr, "Returning move after %dms, searched %llu nodes\n",
+            getElapsedTime(), nodeCount);
+    fflush(stderr);
+
     return bestMove;
 }

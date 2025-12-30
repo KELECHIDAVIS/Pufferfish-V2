@@ -10,8 +10,8 @@
 #include "perft.h"
 #include "searching.h"
 
+#include <limits.h>
 #include <time.h>
-#include <limits.h> 
 
 #define INPUT_BUFFER 4096
 
@@ -176,10 +176,10 @@ void parseGo(Board *board, char *line) {
                 timeToThink = maxTime;
             }
 
-            // Safety: Leave some time buffer, heroku is pretty slow 
+            // Safety: Leave some time buffer, heroku is pretty slow
             timeToThink -= 200;
             if (timeToThink < 50) {
-                timeToThink = 50; // Minimum 100ms
+                timeToThink = 50; // Minimum 50
             }
         } else {
             timeToThink = 5000; // Default 5 seconds
@@ -204,6 +204,7 @@ int main() {
     // 1. Important: Disable buffering
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
+    setbuf(stderr, NULL);
 
     initStandardChess(&board);
     precomputeAllAttacks();
