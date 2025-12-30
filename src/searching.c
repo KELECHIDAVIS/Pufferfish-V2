@@ -69,5 +69,5 @@ Move getBestMove(Board *board, int depth) {
     
     if (!bestMove && legalMove)
         return legalMove ; 
-    return bestMove;
+    return bestMove; // will return 0 if no moves 
 }
