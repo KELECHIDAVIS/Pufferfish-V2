@@ -1,12 +1,145 @@
 #include "searching.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 
+// --- Configuration ---
+// 64MB is safe for Heroku's 512MB limit
+#define TT_SIZE_MB 64
+#define MATE_BOUND (MATE_SCORE - MAX_SEARCH_DEPTH)
+
 SearchInfo searchInfo;
+TTEntry *transTable = NULL;
+size_t ttEntryCount = 0;
+
+// --- Helper: Normalize Mate Scores ---
+// Converts "Mate at absolute ply X" to "Mate in N moves (infinite reference)"
+static int scoreToTT(int score, int ply) {
+    if (score > MATE_BOUND)
+        return score + ply;
+    if (score < -MATE_BOUND)
+        return score - ply;
+    return score;
+}
+
+// Converts "Mate in N moves" back to "Mate at absolute ply X" for the current search
+static int scoreFromTT(int score, int ply) {
+    if (score > MATE_BOUND)
+        return score - ply;
+    if (score < -MATE_BOUND)
+        return score + ply;
+    return score;
+}
+
+// --- Memory Management ---
+void initTransTable(void) {
+    if (transTable != NULL)
+        free(transTable);
+
+    // Calculate entries based on MB size
+    ttEntryCount = (TT_SIZE_MB * 1024 * 1024) / sizeof(TTEntry);
+
+    // Use calloc to zero the memory (prevents garbage bugs)
+    transTable = (TTEntry *)calloc(ttEntryCount, sizeof(TTEntry));
+
+    if (transTable == NULL) {
+        fprintf(stderr, "CRITICAL: Failed to allocate Transposition Table!\n");
+        exit(1);
+    }
+
+    fprintf(stderr, "TT Initialized: %d MB (%zu entries)\n", TT_SIZE_MB, ttEntryCount);
+}
+
+void clearTransTable(void) {
+    if (transTable != NULL) {
+        memset(transTable, 0, ttEntryCount * sizeof(TTEntry));
+    }
+}
+
+void freeTransTable(void) {
+    if (transTable != NULL) {
+        free(transTable);
+        transTable = NULL;
+    }
+}
+
+// --- TT Access ---
+bool probeTransTable(Board *board, int depth, int alpha, int beta,
+                     int *score, Move *bestMove) {
+    if (transTable == NULL)
+        return false;
+
+    size_t index = board->zobristKey % ttEntryCount;
+    TTEntry *entry = &transTable[index];
+
+    // Check for hash collision
+    if (entry->zobristKey != board->zobristKey) {
+        return false;
+    }
+
+    // Always provide the best move for move ordering!
+    if (bestMove != NULL) {
+        *bestMove = entry->bestMove;
+    }
+
+    // We can only cut off if the stored depth is >= current required depth
+    if (entry->depth < depth) {
+        return false;
+    }
+
+    // Convert stored score to be relative to current ply
+    int ttScore = scoreFromTT(entry->eval, board->historyPly);
+
+    switch (entry->type) {
+    case TT_EXACT:
+        *score = ttScore;
+        return true;
+    case TT_BETA:
+        if (ttScore >= beta) {
+            *score = beta;
+            return true;
+        }
+        break;
+    case TT_ALPHA:
+        if (ttScore <= alpha) {
+            *score = alpha;
+            return true;
+        }
+        break;
+    }
+
+    return false;
+}
+
+void storeTransTable(Board *board, int depth, int score,
+                     TTType type, Move bestMove) {
+    if (transTable == NULL)
+        return;
+
+    size_t index = board->zobristKey % ttEntryCount;
+    TTEntry *entry = &transTable[index];
+
+    // Depth-Preferred Replacement Strategy
+    if (entry->zobristKey == 0 ||
+        entry->zobristKey == board->zobristKey ||
+        depth >= entry->depth) {
+
+        entry->zobristKey = board->zobristKey;
+        // Normalize score before storing
+        entry->eval = scoreToTT(score, board->historyPly);
+        entry->depth = depth;
+        entry->type = type;
+        entry->bestMove = bestMove;
+    }
+}
+
+// --- Search Implementation ---
 
 void initSearch(int timeMs) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    searchInfo.startTime = tv.tv_sec * 1000 + tv.tv_usec / 1000; // Convert to ms
+    searchInfo.startTime = tv.tv_sec * 1000 + tv.tv_usec / 1000;
     searchInfo.allocatedTime = timeMs;
     searchInfo.timeUp = false;
 }
@@ -19,160 +152,166 @@ int getElapsedTime() {
 }
 
 bool shouldStop() {
-    if (getElapsedTime() >= searchInfo.allocatedTime) {
-        searchInfo.timeUp = true;
+    if (searchInfo.timeUp)
         return true;
+
+    // Check time every 2048 nodes to reduce overhead
+    static int checkCounter = 0;
+    if ((++checkCounter & 2047) == 0) {
+        if (getElapsedTime() >= searchInfo.allocatedTime) {
+            searchInfo.timeUp = true;
+            return true;
+        }
     }
     return false;
 }
 
 static uint64_t nodeCount = 0;
 
-// searches and sets board's best move for that position
-double alphaBeta(Board *board, int depth, double alpha, double beta) {
-
+int alphaBeta(Board *board, int depth, int alpha, int beta) {
+    int alphaOrig = alpha;
     nodeCount++;
 
-    // Check time:
-    // 1. At higher depths (cheap since few nodes)
-    // 2. Every 2048 nodes at lower depths (where most time is spent)
-    if (depth >= 4 || (nodeCount & 2047) == 0) {
-        if (shouldStop()) {
-            return evaluate(board);
+    // Periodically check for timeout
+    if (shouldStop())
+        return 0;
+
+    // Max depth safety check (matches your board.h define)
+    if (board->historyPly >= MAX_SEARCH_DEPTH - 1) {
+        return evaluate(board);
+    }
+
+    // 50-move rule
+    if (board->halfmoveClock >= 100)
+        return DRAW_SCORE;
+
+    // 1. Probe Transposition Table
+    int ttScore;
+    Move ttMove = 0;
+    if (probeTransTable(board, depth, alpha, beta, &ttScore, &ttMove)) {
+        return ttScore;
+    }
+
+    if (depth <= 0) {
+        return evaluate(board);
+        // If you add Quiescence Search later, call it here:
+        // return quiescence(board, alpha, beta);
+    }
+
+    // 2. Generate Moves
+    Move move_list[MAX_MOVES];
+    size_t numMoves = 0;
+    getPseudoLegalMoves(board, move_list, &numMoves);
+
+    // 3. Score Moves (Your existing logic)
+    // We prioritize the move from the TT if it exists
+    sortMoveList(board, move_list, numMoves);
+
+    // Explicitly move TT best-move to front if sortMoveList didn't handle it
+    if (ttMove != 0) {
+        for (size_t i = 0; i < numMoves; i++) {
+            if (move_list[i] == ttMove) {
+                // Simple swap to index 0
+                Move temp = move_list[0];
+                move_list[0] = ttMove;
+                move_list[i] = temp;
+                break;
+            }
         }
     }
 
-    if (board->historyPly >= MAX_SEARCH_DEPTH - 10) { // Leave some margin
-        return evaluate(board);                       // Emergency exit
-    }
-
-    if (depth <= 0)
-        return evaluate(board);
-
-    // Check for draw by fifty-move rule
-    if (board->halfmoveClock >= 100) {
-        return DRAW_SCORE;
-    }
-    // for all legal moves
-    Move move_list[MAX_MOVES];
-    size_t numMoves = 0;
-
-    // get psuedo legal moves and sort them
-    getPseudoLegalMoves(board, move_list, &numMoves);
-    sortMoveList(board, move_list, numMoves);
-
     enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
     size_t legalMoveCount = 0;
+    Move bestMove = 0;
 
+    // 4. Iterate Moves
     for (size_t i = 0; i < numMoves; i++) {
-
         makeMove(board, move_list[i]);
 
-        if (!isSideInCheck(board, currSide)) { // legal move
+        if (!isSideInCheck(board, currSide)) {
             legalMoveCount++;
-            double score = -alphaBeta(board, depth - 1, -beta, -alpha);
 
-            unmakeMove(board, move_list[i]); // unmake move before returning
+            int score = -alphaBeta(board, depth - 1, -beta, -alpha);
 
-            if (score >= beta)
-                return beta; // opponent wouldn't allow move so return
+            unmakeMove(board, move_list[i]);
 
-            if (score > alpha)
+            if (searchInfo.timeUp)
+                return 0;
+
+            if (score >= beta) {
+                // Fail-High (Beta Cutoff)
+                storeTransTable(board, depth, beta, TT_BETA, move_list[i]);
+                return beta;
+            }
+
+            if (score > alpha) {
+                // PV-Node (Improved Alpha)
                 alpha = score;
-
-        } else { // unmake illegal move
+                bestMove = move_list[i];
+            }
+        } else {
             unmakeMove(board, move_list[i]);
         }
     }
 
-    // No legal moves found - check for checkmate or stalemate
+    // 5. Checkmate / Stalemate
     if (legalMoveCount == 0) {
         if (isSideInCheck(board, currSide)) {
-            // Checkmate: return a mate score adjusted by depth
-            // This makes the engine prefer shorter mates
+            // Your format: -MATE + Ply (Absolute score)
+            // TT Helper will convert this to stored format automatically
             return -MATE_SCORE + board->historyPly;
         } else {
-            // Stalemate: it's a draw
             return DRAW_SCORE;
         }
     }
 
-    return alpha; // alpha being returned is probably neg inifinity
+    // 6. Store Result
+    if (alpha > alphaOrig) {
+        storeTransTable(board, depth, alpha, TT_EXACT, bestMove);
+    } else {
+        storeTransTable(board, depth, alpha, TT_ALPHA, bestMove);
+    }
+
+    return alpha;
 }
 
 Move getBestMove(Board *board, int maxTimeMs) {
     Move bestMove = 0;
-    double bestScore = -INFINITY;
+    int bestScore = -MATE_SCORE;
 
     nodeCount = 0;
     initSearch(maxTimeMs);
 
-    fprintf(stderr, "Starting search with %dms allocated\n", maxTimeMs);
-    fflush(stderr);
+    // clearTransTable(); // Optional: Clear if you want fresh search every move
 
-    int maxDepth = 10; // Reasonable hard limit
+    fprintf(stderr, "Search Start: %dms limit\n", maxTimeMs);
 
-    // iterative deepening
-    for (int depth = 1; depth < maxDepth && depth < MAX_SEARCH_DEPTH; depth++) {
-        Move move_list[MAX_MOVES];
-        size_t numMoves = 0;
+    // Iterative Deepening
+    for (int depth = 1; depth <= MAX_SEARCH_DEPTH; depth++) {
 
-        getPseudoLegalMoves(board, move_list, &numMoves);
-        sortMoveList(board, move_list, numMoves);
-
-        enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
-
-        Move iterationBestMove = 0;
-        double iterationBestScore = -INFINITY;
-        bool completedDepth = true;
-
-        for (size_t i = 0; i < numMoves; i++) {
-            makeMove(board, move_list[i]);
-
-            if (!isSideInCheck(board, currSide)) {
-                double score = -alphaBeta(board, depth - 1, -INFINITY, INFINITY);
-                unmakeMove(board, move_list[i]);
-
-                if (searchInfo.timeUp) {
-                    completedDepth = false;
-                    break;
-                }
-
-                if (score > iterationBestScore) {
-                    iterationBestScore = score;
-                    iterationBestMove = move_list[i];
-                }
-            } else {
-                unmakeMove(board, move_list[i]); // unmake illegal move
-            }
-        }
-
-        if (completedDepth && iterationBestMove) {
-            bestMove = iterationBestMove;
-            bestScore = iterationBestScore;
-
-            int elapsed = getElapsedTime();
-            fprintf(stderr, "Completed depth %d in %dms (score: %.0f)\n",
-                    depth, elapsed, bestScore);
-            fflush(stderr);
-        }
+        int score = alphaBeta(board, depth, -MATE_SCORE, MATE_SCORE);
 
         if (searchInfo.timeUp) {
-            fprintf(stderr, "Time up at depth %d\n", depth);
-            fflush(stderr);
+            fprintf(stderr, "Time Up at Depth %d\n", depth);
             break;
         }
 
-        if (bestScore > MATE_SCORE - 100) {
-            fprintf(stderr, "Found mate, stopping search\n");
-            fflush(stderr);
-            break;
+        // Try to get the Best Move from TT for this depth
+        // This is safer than relying on variables inside the loop
+        TTEntry *entry = &transTable[board->zobristKey % ttEntryCount];
+        if (entry->zobristKey == board->zobristKey && entry->bestMove != 0) {
+            bestMove = entry->bestMove;
+            bestScore = score;
         }
+
+        int elapsed = getElapsedTime();
+        fprintf(stderr, "Depth %d: Score %d, Nodes %llu, Time %dms\n",
+                depth, score, (unsigned long long)nodeCount, elapsed);
+
+        // Stop early if forced mate found
+        if (score > MATE_BOUND || score < -MATE_BOUND)
+            break;
     }
-
-    fprintf(stderr, "Returning move after %dms, searched %llu nodes\n",
-            getElapsedTime(), nodeCount);
-    fflush(stderr);
 
     return bestMove;
 }

@@ -211,6 +211,7 @@ int main() {
     initStandardChess(&board);
     precomputeAllAttacks();
     init_pesto_tables();
+    initTransTable(); 
     
 
     // 2. UCI Loop
@@ -235,5 +236,6 @@ int main() {
         }
     }
 
+    freeTransTable(); // clean up trans table 
     return 0;
 }
