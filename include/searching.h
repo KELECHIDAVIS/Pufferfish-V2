@@ -53,5 +53,6 @@ extern bool probeTransTable(Board *board, int depth, int alpha, int beta,
                             int *score, Move *bestMove);
 extern void storeTransTable(Board *board, int depth, int score,
                             TTType type, Move bestMove);
+extern bool isRepetition(const Board* board); 
 
 #endif //  SEARCH_H

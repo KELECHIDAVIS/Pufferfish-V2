@@ -134,6 +134,19 @@ void storeTransTable(Board *board, int depth, int score,
     }
 }
 
+bool isRepetition(const Board *board) {
+    // start 2 plies back (previous time we moved)
+    // we stop if we go past the history or past the last irreversible move (halfmoveClock)
+    for (int i = 2; i <= board->halfmoveClock && i < board->historyPly; i += 2) {
+
+        // Compare current key with history
+        if (board->historyArr[board->historyPly - i].zobristKey == board->zobristKey) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // --- Search Implementation ---
 
 void initSearch(int timeMs) {
@@ -182,8 +195,15 @@ int alphaBeta(Board *board, int depth, int alpha, int beta) {
     }
 
     // 50-move rule
-    if (board->halfmoveClock >= 100)
+    if (board->halfmoveClock >= 100){
         return DRAW_SCORE;
+    }
+    
+    // if the state was repeated before, through perfect play the opp can draw out a 3-fold-repetition 
+    if (isRepetition(board)) {
+        return DRAW_SCORE;
+    }
+
 
     // 1. Probe Transposition Table
     int ttScore;
