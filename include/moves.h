@@ -48,7 +48,11 @@ static inline void setFrom(Move *move, unsigned int from) {
     *move &= (Move)(~0xFC0U);
     *move |= (from & 0x3fU) << 6;
 }
-static inline bool isCapture(Move move) { return (move & CAPTURE_FLAG) != 0; }
+
+static inline bool isCapture(Move move) {
+    unsigned int flags = getFlags(move);
+    return (flags >= CAPTURE_FLAG && flags <= EN_PASSANT_CAPTURE_FLAG) || (flags >= KNIGHT_PROMO_CAPTURE_FLAG && flags <= QUEEN_PROMO_CAPTURE_FLAG);
+}
 
 // Pass in a move list array and it'll be filled with legal moves
 extern void getPseudoLegalMoves(const Board *board, Move *moveList, size_t *numMoves);
@@ -64,6 +68,7 @@ extern void translateFlagToAlgebraic(MoveFlag flag, char *buffer);
 extern bool isSideInCheck(const Board *board, const enumPiece side);
 extern void makeMove(Board *board, Move move);
 extern void unmakeMove(Board *board, Move move);
+
 
 extern void printMove(Move move);
 #endif // MOVES_H

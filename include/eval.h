@@ -9,4 +9,5 @@ extern int evaluate(const Board *board);
 
 extern void init_pesto_tables();
 
+
 #endif // EVAL_H

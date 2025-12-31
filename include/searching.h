@@ -1,10 +1,13 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 #include "eval.h"
-#include "moves.h"
 #include "limits.h"
-
+#include "moves.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
 #include <time.h>
 
 #define DRAW_SCORE 0
@@ -53,6 +56,7 @@ extern bool probeTransTable(Board *board, int depth, int alpha, int beta,
                             int *score, Move *bestMove);
 extern void storeTransTable(Board *board, int depth, int score,
                             TTType type, Move bestMove);
-extern bool isRepetition(const Board* board); 
+extern bool isRepetition(const Board* board);
+extern int quiessence( Board *board, int alpha, int beta);
 
 #endif //  SEARCH_H

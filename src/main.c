@@ -117,7 +117,29 @@ void parsePosition(Board *board, char *line) {
 // --- Helper: Parse "go perft <depth>" ---
 void parseGo(Board *board, char *line) {
     if (strstr(line, "perft")) {
-        // ... existing perft code ...
+        int depth = 3; // default
+        char *ptr = strstr(line, "perft");
+        if (ptr) {
+            depth = atoi(ptr + 6);
+        }
+
+        struct timeval start, end;
+
+        gettimeofday(&start, NULL);
+        U64 nodes = divide(board, depth);
+        gettimeofday(&end, NULL);
+
+        /* Compute elapsed time in seconds */
+        double seconds =
+            (end.tv_sec - start.tv_sec) +
+            (end.tv_usec - start.tv_usec) / 1e6;
+
+        /* Guard against division by zero */
+        if (seconds > 0.0) {
+            U64 nodesPerSecond = (U64)(nodes / seconds);
+            printf("Nodes Per Second: %llu\n", nodesPerSecond);
+        }
+        
         return;
     }
 

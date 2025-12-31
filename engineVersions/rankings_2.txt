@@ -1,0 +1,39 @@
+Rank Name                          Elo     +/-   Games   Score    Draw 
+   0 Goopis_IterativeDeepening     102      91      21   64.3%   61.9% 
+   1 Goopis_RepValidation          120     264       3   66.7%   66.7% 
+   2 GoopisRepetition                0       0       3   50.0%  100.0% 
+   3 Goopis_TransTable               0       0       3   50.0%  100.0% 
+   4 Goopis_Pesto                 -120     264       3   33.3%   66.7% 
+   5 Goopis_MoveOrdering          -120     264       3   33.3%   66.7% 
+   6 Stockfish_1320               -280     nan       3   16.7%   33.3% 
+   7 Goopis_Standard              -inf     nan       3    0.0%    0.0% 
+
+SPRT: llr 0 (0.0%), lbound -inf, ubound inf
+21 of 21 games finished.
+
+Player: Goopis_IterativeDeepening
+   "Draw by 3-fold repetition": 12
+   "Draw by stalemate": 1
+   "Loss: White mates": 1
+   "Win: Black mates": 4
+   "Win: White mates": 3
+Player: Goopis_MoveOrdering
+   "Draw by 3-fold repetition": 2
+   "Loss: Black mates": 1
+Player: Goopis_Pesto
+   "Draw by 3-fold repetition": 2
+   "Loss: Black mates": 1
+Player: Goopis_RepValidation
+   "Draw by 3-fold repetition": 2
+   "Win: White mates": 1
+Player: Goopis_Standard 
+   "Loss: Black mates": 1
+   "Loss: White mates": 2
+Player: Goopis_TransTable
+   "Draw by 3-fold repetition": 3
+Player: GoopisRepetition
+   "Draw by 3-fold repetition": 3
+Player: Stockfish_1320
+   "Draw by stalemate": 1
+   "Loss: Black mates": 1
+   "Loss: White mates": 1

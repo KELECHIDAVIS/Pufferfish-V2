@@ -822,6 +822,7 @@ void init_pesto_tables() {
     }
 }
 
+
 int evaluate(const Board *board) {
     int mg[2];
     int eg[2];

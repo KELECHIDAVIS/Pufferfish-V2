@@ -1,8 +1,4 @@
 #include "searching.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
 
 // --- Configuration ---
 // 64MB is safe for Heroku's 512MB limit
@@ -181,6 +177,65 @@ bool shouldStop() {
 
 static uint64_t nodeCount = 0;
 
+// https://www.chessprogramming.org/Quiescence_Search
+int quiessence (Board *board, int alpha, int beta) {
+    int static_eval = evaluate(board);
+
+    // Stand Pat
+    int best_value = static_eval;
+    if (best_value >= beta)
+        return best_value;
+
+    // delta pruning: test if alpha can be improved by the greatest possible material swing (capturing a queen or promoting a pawn)
+    // if we are so below alpha that even capturing a queen/promotion won't help then just return alpha 
+    int BIG_DELTA = 900; // Value of a Queen
+    enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
+
+    if (canSidePromote(board, currSide)){
+        BIG_DELTA+=775 ; // replace pawn with queen 
+    }
+
+    if (static_eval < alpha - BIG_DELTA) {
+        return alpha;
+    }
+
+    if (best_value > alpha)
+        alpha = best_value;
+
+    // search every capture to make sure last move didn't put the side in peril
+    Move move_list[MAX_MOVES];
+    size_t numMoves = 0;
+    getPseudoLegalMoves(board, move_list, &numMoves);
+    sortMoveList(board, move_list, numMoves); // sort so captures are usually near top
+
+
+    for (size_t i = 0; i < numMoves; i++) {
+        unsigned int flags = getFlags(move_list[i]);
+
+        if (!(isCapture(move_list[i])))
+            continue;
+
+        makeMove(board, move_list[i]);
+
+        if (!isSideInCheck(board, currSide)) {
+            int score = -quiessence(board, -beta, -alpha);
+            unmakeMove(board, move_list[i]);
+
+            if (score >= beta)
+                return score;
+            if (score > best_value)
+                best_value = score;
+            if (score > alpha)
+                alpha = score;
+        } else {
+
+            unmakeMove(board, move_list[i]); // unmake illegal move
+        }
+    }
+
+    return best_value;
+}
+
 int alphaBeta(Board *board, int depth, int alpha, int beta) {
     int alphaOrig = alpha;
     nodeCount++;
@@ -191,19 +246,18 @@ int alphaBeta(Board *board, int depth, int alpha, int beta) {
 
     // Max depth safety check (matches your board.h define)
     if (board->historyPly >= MAX_SEARCH_DEPTH - 1) {
-        return evaluate(board);
+        return quiessence(board, alpha, beta);
     }
 
     // 50-move rule
-    if (board->halfmoveClock >= 100){
-        return DRAW_SCORE;
-    }
-    
-    // if the state was repeated before, through perfect play the opp can draw out a 3-fold-repetition 
-    if (isRepetition(board)) {
+    if (board->halfmoveClock >= 100) {
         return DRAW_SCORE;
     }
 
+    // if the state was repeated before, through perfect play the opp can draw out a 3-fold-repetition
+    if (isRepetition(board)) {
+        return DRAW_SCORE;
+    }
 
     // 1. Probe Transposition Table
     int ttScore;
@@ -213,9 +267,7 @@ int alphaBeta(Board *board, int depth, int alpha, int beta) {
     }
 
     if (depth <= 0) {
-        return evaluate(board);
-        // If you add Quiescence Search later, call it here:
-        // return quiescence(board, alpha, beta);
+        return quiessence(board, alpha, beta);
     }
 
     // 2. Generate Moves
@@ -320,8 +372,29 @@ Move getBestMove(Board *board, int maxTimeMs) {
         // This is safer than relying on variables inside the loop
         TTEntry *entry = &transTable[board->zobristKey % ttEntryCount];
         if (entry->zobristKey == board->zobristKey && entry->bestMove != 0) {
-            bestMove = entry->bestMove;
-            bestScore = score;
+
+            // validating that the move retrieved was a legal one
+            Move moveList[MAX_MOVES];
+            size_t numMoves = 0;
+            getPseudoLegalMoves(board, moveList, &numMoves);
+            enumPiece currSide = board->whiteToMove ? nWhite : nBlack;
+            bool isLegal = false;
+            for (size_t i = 0; i < numMoves; i++) {
+                if (moveList[i] == entry->bestMove) {
+                    // Check if move is actually legal (not leaving king in check)
+                    makeMove(board, moveList[i]);
+                    if (!isSideInCheck(board, currSide)) {
+                        isLegal = true;
+                    }
+                    unmakeMove(board, moveList[i]);
+                    break;
+                }
+            }
+
+            if (isLegal) {
+                bestMove = entry->bestMove;
+                bestScore = score;
+            }
         }
 
         int elapsed = getElapsedTime();

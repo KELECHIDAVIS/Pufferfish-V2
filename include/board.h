@@ -199,6 +199,13 @@ static inline void putPiece(Board *board, enumPiece piece, enumPiece side,
     // update zobrist
     board->zobristKey ^= PieceRandoms[side][piece - 2][dest];
 }
+
+// doesn't return if it's legal to promote (there may be something blocking but can decide that later in move gen)
+static inline bool canSidePromote(const Board *board, enumPiece side ) {
+    U64 finalPawnRank = side==nWhite ? RANK_7 : RANK_2; 
+    return getSpecificColorPieces(board, side, nPawn) & finalPawnRank; // see if this side has any pawns on that rank 
+}
+
 extern void initBoard(Board *board, char *fen);
 extern void initStandardChess(Board *board);
 extern void addPiece(Board *board, enumPiece color, enumPiece pieceType, enumSquare square);
