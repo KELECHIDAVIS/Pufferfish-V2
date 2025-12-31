@@ -9,6 +9,7 @@ if (positionRepeatedThreeTimes(board)) {
 
 
 1.5 : through zobrist hashing, add transposition tables to memoize calculated board positions we've already seen when searching moves
+1.6: will continue transposition tables 
 
 2. Insufficient Material
 Detect positions where neither side can mate (e.g., K vs K, K+B vs K):
