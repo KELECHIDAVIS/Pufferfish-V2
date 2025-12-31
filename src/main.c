@@ -206,6 +206,7 @@ int main() {
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
+    srand(12345); 
     initZobristRandoms(); 
     initStandardChess(&board);
     precomputeAllAttacks();

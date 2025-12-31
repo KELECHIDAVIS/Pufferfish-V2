@@ -126,6 +126,7 @@ typedef struct
     unsigned short halfmoveClock;
     unsigned short fullMoveNumber;
     enumPiece capturedPiece;
+    U64 zobristKey;
 } MoveHistory;
 
 typedef struct
@@ -140,20 +141,18 @@ typedef struct
     unsigned short fullmoveNumber; // starts at 1 and increments after
     MoveHistory historyArr[MAX_SEARCH_DEPTH];
     int historyPly;
-    U64 zobristKey; 
+    U64 zobristKey;
 } Board;
 
-// zobrist randoms 
+// zobrist randoms
+extern U64 PieceRandoms[2][6][64]; // sides , piece types , num squares
+extern U64 CastlingRandoms[16];    // castling rights range from 0000 -> 1111
+extern U64 SideRandom; // white to move 
+extern U64 EpRandoms[65]; // can be any square or NO_SQUARE
 
-static U64 PieceRandoms[2][6][64]; // sides , piece types , num squares 
-static U64 CastlingRandoms[16];  // castling rights range from 0000 -> 1111
-static U64 SideRandoms[2]; 
-static U64 EpRandoms[65]; // can be any square or NO_SQUARE
+extern void initZobristRandoms(); // fills arrays up with random vals
 
-
-extern void initZobristRandoms(); // fills arrays up with random vals 
-
-extern void initZobristKey(Board* board); // initializes key for
+extern void initZobristKey(Board *board); // initializes key for
 
 static inline U64 randU64() {
     U64 u1, u2, u3, u4;
@@ -187,6 +186,8 @@ static inline void removePiece(Board *board, enumPiece piece, enumPiece side,
     board->pieces[piece] &= ~posBit;
     board->pieces[side] &= ~posBit;
     board->mailbox[pos] = EMPTY; // empty
+    // update zobrist
+    board->zobristKey ^= PieceRandoms[side][piece-2][pos];
 }
 static inline void putPiece(Board *board, enumPiece piece, enumPiece side,
                             unsigned int dest) {
@@ -194,6 +195,9 @@ static inline void putPiece(Board *board, enumPiece piece, enumPiece side,
     board->pieces[piece] |= destBit;
     board->pieces[side] |= destBit;
     board->mailbox[dest] = piece;
+
+    // update zobrist
+    board->zobristKey ^= PieceRandoms[side][piece - 2][dest];
 }
 extern void initBoard(Board *board, char *fen);
 extern void initStandardChess(Board *board);
@@ -202,6 +206,5 @@ extern void printBB(U64 bb);
 extern void printChessBoard(const Board *board);
 extern void printBoardDetails(Board *board);
 extern void translateSquareToAlgebraic(enumSquare square, char *buffer);
-
 
 #endif // BOARD_H

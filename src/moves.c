@@ -460,7 +460,7 @@ void saveBoardState(Board *board, Move move, enumPiece capturedPiece) {
     currHistory->fullMoveNumber = board->fullmoveNumber;
     currHistory->move = move;
     currHistory->capturedPiece = capturedPiece; // will be valid piece if piece was captured
-
+    currHistory->zobristKey = board->zobristKey; 
     board->historyPly++; // increase size of stack
 }
 bool isSideInCheck(const Board *board, const enumPiece side) {
@@ -525,16 +525,24 @@ void makeMove(Board *board, Move move) {
     putPiece(board, movingPiece, side, to);
 
     // if double pawn push, set enPassantSquare to square behind
+    board->zobristKey ^= EpRandoms[board->enPassantSquare]; // Remove old
     if (flags == DOUBLE_PAWN_PUSH_FLAG)
         board->enPassantSquare = to + epPawnOffset;
     else
         board->enPassantSquare = NO_SQUARE; // nonValid ep square
+
+    board->zobristKey ^= EpRandoms[board->enPassantSquare]; // update ep zobrist
+
+
+    U64 oldCastlingKey = CastlingRandoms[board->castlingRights]; // save prev for zobrist 
 
     // if king or rook moved OR rook was capturedPiece, update castling righ`ts
     if (movingPiece == nKing || movingPiece == nRook)
         updateCastlingRights(board, movingPiece, from);
     else if (capturedPiece == nRook)
         updateCastlingRights(board, capturedPiece, capturedDest);
+
+    board->zobristKey ^= oldCastlingKey ^ CastlingRandoms[board->castlingRights]; // update castling zobrist  
 
     // if promo, remove_piece the pawn at dest then place promo piece
     if (flags >= KNIGHT_PROMOTION_FLAG && flags <= QUEEN_PROMO_CAPTURE_FLAG) {
@@ -582,6 +590,9 @@ void makeMove(Board *board, Move move) {
 
     // change board' white to move
     board->whiteToMove = !board->whiteToMove;
+
+    // change side zobrist 
+    board->zobristKey ^= SideRandom; 
 }
 
 void loadLastBoardState(Board *board) {
@@ -593,6 +604,7 @@ void loadLastBoardState(Board *board) {
     board->enPassantSquare = lastState->enPassantSquare;
     board->halfmoveClock = lastState->halfmoveClock;
     board->fullmoveNumber = lastState->fullMoveNumber;
+    board->zobristKey = lastState->zobristKey ; 
 }
 
 void unmakeMove(Board *board, Move move) {

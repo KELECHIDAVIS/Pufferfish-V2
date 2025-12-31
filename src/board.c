@@ -377,12 +377,17 @@ static void initMailbox(Board *board) {
     }
 }
 
+U64 PieceRandoms[2][6][64]; // sides , piece types , num squares
+U64 CastlingRandoms[16];    // castling rights range from 0000 -> 1111
+U64 SideRandom ; // white to move if on, 
+U64 EpRandoms[65]; // can be any square or NO_SQUARE
+
 void initZobristRandoms() {
     //piece randoms 
     for (int side = nWhite; side <= nBlack ; side++){
         for (enumPiece piece = nPawn; piece <= nKing; piece++){
             for(enumSquare square = a1 ; square <=h8; square++){
-                PieceRandoms[side][piece][square] = randU64(); 
+                PieceRandoms[side][piece-2][square] = randU64(); 
             }
         }
     }
@@ -393,15 +398,14 @@ void initZobristRandoms() {
     }
 
     // side 
-    for (int side = nWhite ; side <= nBlack ; side++){
-        SideRandoms[side] = randU64(); 
-    }
+    SideRandom = randU64(); 
 
     // en passant 
     for(int square= 0; square <= NO_SQUARE; square++){
         EpRandoms[square] = randU64(); 
     }
 }
+
 
 void initZobristKey(Board* board) {
     board->zobristKey = 0; 
@@ -418,17 +422,16 @@ void initZobristKey(Board* board) {
         U64 pieceBit = 1ULL<< square ; 
         enumPiece side = getColorPieces(board, nWhite) & pieceBit ? nWhite : nBlack;
         
-        board->zobristKey ^= PieceRandoms[side][piece][square]; 
+        board->zobristKey ^= PieceRandoms[side][piece-2][square];  // have to minus 2 from piece cus nPawn =2 
         
     }
 
     // castling
     board->zobristKey ^= CastlingRandoms[board->castlingRights]; 
 
-    // side to move 
-    int sideToMove = board->whiteToMove ? nWhite : nBlack; 
-    board->zobristKey ^= SideRandoms[sideToMove]; 
-
+    // toggle white to move on if it's white to move
+    if (board->whiteToMove)
+        board->zobristKey ^= SideRandom;  
     // enPassant
     board->zobristKey ^= EpRandoms[board->enPassantSquare]; 
 }
