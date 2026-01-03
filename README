@@ -4,6 +4,7 @@ You can challenge and play against the bot here: https://lichess.org/@/Goopis
 
 Each version of the engine, as well as its rankings against one another, can be found in the engineVersions directory
 
+The final version of the engine has an elo of 1600+ 
 
 thanks to:
 chessprogramming.org
